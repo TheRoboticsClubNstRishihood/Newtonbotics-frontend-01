@@ -7,6 +7,13 @@ import { motion } from "framer-motion";
 import { User2, Mail, Phone, Building, Calendar, Lock, Eye, EyeOff, Save, AlertCircle, CheckCircle } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import CloudinaryUploader from "../../components/CloudinaryUploader";
+import {
+  OTHER_ACADEMIC_YEAR,
+  PASSING_YEARS,
+  passingYearOptionLabel,
+  passingYearToYearOfStudy,
+  yearOfStudyToPassingYear,
+} from "@/lib/academicYear";
 
 function Input({ label, icon: Icon, rightElement, disabled: isDisabled, ...props }) {
   return (
@@ -125,7 +132,7 @@ export default function ProfileCompletionPage() {
         lastName: user.lastName || "",
         phone: user.phone || "",
         department: user.department || "",
-        yearOfStudy: user.yearOfStudy || "",
+        yearOfStudy: yearOfStudyToPassingYear(user.yearOfStudy) || "",
         studentId: user.studentId || "",
         profileImageUrl: user.profileImageUrl || "",
         bio: user.bio || "",
@@ -197,9 +204,9 @@ export default function ProfileCompletionPage() {
           payload.profileImageUrl = url;
         }
       }
-      if (profileData.yearOfStudy !== '' && !Number.isNaN(parseInt(profileData.yearOfStudy))) {
-        const y = parseInt(profileData.yearOfStudy);
-        if (y >= 1 && y <= 8) payload.yearOfStudy = y;
+      if (profileData.yearOfStudy && profileData.yearOfStudy !== OTHER_ACADEMIC_YEAR) {
+        const yearOfStudy = passingYearToYearOfStudy(profileData.yearOfStudy);
+        if (yearOfStudy) payload.yearOfStudy = yearOfStudy;
       }
       if (Array.isArray(profileData.skills) && profileData.skills.length > 0) {
         const uniqueSkills = Array.from(new Set(profileData.skills.map((s) => String(s).trim()))).filter(Boolean);
@@ -449,16 +456,22 @@ export default function ProfileCompletionPage() {
                       </Select>
 
                       <Select 
-                        label="Year of Study"
+                        label="Academic Year"
                         icon={Calendar}
                         value={profileData.yearOfStudy}
                         disabled={!isEditing}
                         onChange={(e) => handleProfileInputChange('yearOfStudy', e.target.value)}
                       >
-                        <option value="">Select Year</option>
-                        {[1, 2, 3, 4, 5].map(year => (
-                          <option key={year} value={year}>Year {year}</option>
+                        <option value="">Select passing year</option>
+                        {PASSING_YEARS.map(year => (
+                          <option key={year} value={year}>{passingYearOptionLabel(year)}</option>
                         ))}
+                        {profileData.yearOfStudy &&
+                          profileData.yearOfStudy !== OTHER_ACADEMIC_YEAR &&
+                          !PASSING_YEARS.includes(Number(profileData.yearOfStudy)) && (
+                          <option value={profileData.yearOfStudy}>{profileData.yearOfStudy}</option>
+                        )}
+                        <option value={OTHER_ACADEMIC_YEAR}>Other (other branch / programme)</option>
                       </Select>
                     </>
                   )}
@@ -525,7 +538,7 @@ export default function ProfileCompletionPage() {
                     <div className="flex gap-3">
                       <button
                         type="button"
-                        onClick={() => { setIsEditing(false); if (user) { setProfileData({ firstName: user.firstName || "", lastName: user.lastName || "", phone: user.phone || "", department: user.department || "", yearOfStudy: user.yearOfStudy || "", studentId: user.studentId || "", profileImageUrl: user.profileImageUrl || "", bio: user.bio || "", skills: user.skills || [] }); } }}
+                        onClick={() => { setIsEditing(false); if (user) { setProfileData({ firstName: user.firstName || "", lastName: user.lastName || "", phone: user.phone || "", department: user.department || "", yearOfStudy: yearOfStudyToPassingYear(user.yearOfStudy) || "", studentId: user.studentId || "", profileImageUrl: user.profileImageUrl || "", bio: user.bio || "", skills: user.skills || [] }); } }}
                         className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/15 transition font-semibold"
                       >
                         Cancel
