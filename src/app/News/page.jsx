@@ -16,6 +16,11 @@ import Image from "next/image";
 import Link from "next/link";
 import newsService from "../../lib/news";
 import { subscribeToNewsletter } from "../../lib/newsletter";
+import {
+  CardSkeletonGrid,
+  FilterBarSkeleton,
+  NewsCardSkeleton,
+} from "@/components/PageSkeletons";
 
 const NewsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -234,9 +239,31 @@ const NewsPage = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black text-white font-sans py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-500 mx-auto mb-8"></div>
-          <h2 className="text-2xl font-bold text-white">Loading Latest News...</h2>
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
+              Latest News & Updates
+            </h1>
+            <p className="text-lg text-white/80 max-w-3xl mx-auto">
+              Stay informed about our latest achievements, events, workshops, and groundbreaking projects in robotics and technology.
+            </p>
+          </div>
+          <FilterBarSkeleton fields={3} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10">
+                <div className="nb-skeleton h-8 w-12 rounded mx-auto mb-2" style={{ animationDelay: `${i * 60}ms` }} />
+                <div className="nb-skeleton h-3 w-20 rounded mx-auto" style={{ animationDelay: `${i * 60 + 40}ms` }} />
+              </div>
+            ))}
+          </div>
+          <h2 className="text-3xl font-bold mb-8 font-display">Featured Stories</h2>
+          <div className="grid lg:grid-cols-2 gap-8 mb-16">
+            <NewsCardSkeleton featured delay={0} />
+            <NewsCardSkeleton featured delay={80} />
+          </div>
+          <h2 className="text-3xl font-bold mb-8 font-display">All News</h2>
+          <CardSkeletonGrid count={6} variant="news" />
         </div>
       </div>
     );

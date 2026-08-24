@@ -33,7 +33,7 @@
         "./src/contexts/*"
       ],
       "@/components/*": [
-        "./components/*"
+        "./src/components/*"
       ]
     }
   },

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import { useAuth } from "../../contexts/AuthContext";
+import { ActivityDashboardSkeleton } from "@/components/PageSkeletons";
 
 export default function MyActivityPage() {
   const { getMyDashboard } = useAuth();
@@ -39,7 +40,7 @@ export default function MyActivityPage() {
         <div className="container mx-auto px-6 py-10">
           <h1 className="text-3xl md:text-4xl font-bold mb-6">My Activity</h1>
 
-          {loading && <div className="text-white/70">Loading your activity…</div>}
+          {loading && <ActivityDashboardSkeleton />}
           {error && (
             <div className="text-red-400">{error}</div>
           )}

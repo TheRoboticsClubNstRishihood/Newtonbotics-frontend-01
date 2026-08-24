@@ -10,11 +10,11 @@ import {
   Video,
   FileText,
   X,
-  Loader2,
 } from "lucide-react";
 import ProtectedRoute from "../../components/ProtectedRoute";
 import resourcesService, { RESOURCE_CATEGORIES, RESOURCE_TYPES } from "../../lib/resources";
 import { getResourceOpenUrl, getResourcePreviewUrl, isCloudinaryUrl } from "../../lib/cloudinaryMedia";
+import { CardSkeletonGrid } from "@/components/PageSkeletons";
 
 const TYPE_ICONS = {
   link: Link2,
@@ -189,10 +189,7 @@ function ResourcesContent() {
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-24 text-white/60 gap-3">
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Loading resources...
-          </div>
+          <CardSkeletonGrid count={6} variant="resource" cols="grid-cols-1 sm:grid-cols-2 xl:grid-cols-3" />
         ) : filteredCount === 0 ? (
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-12 text-center">
             <FileText className="w-12 h-12 text-white/30 mx-auto mb-4" />

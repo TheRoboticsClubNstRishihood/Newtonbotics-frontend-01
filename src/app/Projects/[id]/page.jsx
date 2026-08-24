@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useParams, useRouter } from "next/navigation";
 import { 
@@ -22,10 +22,17 @@ import {
   CalendarDays
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
-import { useRef } from "react";
+import RemoteImage from "@/components/RemoteImage";
+import { DetailPageSkeleton } from "@/components/PageSkeletons";
 import { mediaService } from "@/lib/media";
 import { API_BASE_URL } from "@/lib/api";
+import { getPersonDisplayName } from "@/lib/publicTeam";
+
+const getUserId = (user) => {
+  if (!user) return null;
+  if (typeof user === "string") return user;
+  return user._id || user.id || null;
+};
 
 const ProjectDetail = () => {
   const params = useParams();
@@ -243,14 +250,7 @@ const ProjectDetail = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-white/60">Loading project details...</p>
-        </div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !project) {
@@ -285,62 +285,143 @@ const ProjectDetail = () => {
     return fallbackImages[index % fallbackImages.length];
   };
 
-  // Show all team members as returned by the API, including the leader if present
+  const teamLeaderUserId = getUserId(project?.teamLeaderId);
   const displayedTeamMembers = Array.isArray(project?.teamMembers)
     ? project.teamMembers
     : [];
+  const teamLeaderInMembers = teamLeaderUserId
+    ? displayedTeamMembers.some(
+        (member) => getUserId(member.userId)?.toString() === teamLeaderUserId.toString()
+      )
+    : false;
+  const hasTeamSection =
+    project.teamLeaderId || displayedTeamMembers.length > 0;
+
+  const displayProgress = getDisplayProgress(project);
+  const milestoneTotal =
+    project.totalMilestonesCount || project.milestones?.length || 0;
+  const milestoneCompleted =
+    project.completedMilestonesCount ||
+    project.milestones?.filter((m) => m.status === "completed").length ||
+    0;
+  const heroImage = project.imageUrl || getFallbackImage(0);
+
+  const scrollToTeam = () => {
+    document.getElementById("project-team")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="bg-gradient-to-b from-gray-900 to-black border-b border-white/10">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4 mb-6">
-            <Link href="/Projects">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Back to Projects
-              </motion.button>
-            </Link>
-          </div>
-          
+      {/* Hero */}
+      <div className="nb-project-hero border-b border-white/10">
+        <div className="container mx-auto px-4 py-5 md:py-8">
+          <Link href="/Projects">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-2 nb-hero-back text-sm transition-colors p-2 -ml-2 rounded-lg"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Projects
+            </motion.button>
+          </Link>
+
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-4"
+            transition={{ duration: 0.6 }}
+            className="mt-4 grid lg:grid-cols-5 gap-6 lg:gap-8 items-start"
           >
-            {/* Project Status */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border ${getProjectStatusColor(project.status)}`}>
-                {getProjectStatusIcon(project.status)}
-                {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('_', ' ')}
-              </span>
-              {project.isFeatured && (
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2">
-                  <Star className="w-4 h-4" />
-                  Featured
+            <div className="lg:col-span-3 space-y-4 md:space-y-5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border ${getProjectStatusColor(project.status)}`}>
+                  {getProjectStatusIcon(project.status)}
+                  {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace("_", " ")}
                 </span>
+                {project.isFeatured && (
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 flex items-center gap-2">
+                    <Star className="w-4 h-4" />
+                    Featured
+                  </span>
+                )}
+                {project.category && (
+                  <span className="nb-hero-category inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium">
+                    <Tag className="w-4 h-4" />
+                    {project.category}
+                  </span>
+                )}
+              </div>
+
+              <h1 className="nb-project-hero-title text-3xl sm:text-4xl lg:text-5xl font-bold font-display leading-tight">
+                {project.title}
+              </h1>
+
+              {project.description && (
+                <p className="nb-project-hero-muted text-base sm:text-lg leading-relaxed max-w-3xl">
+                  {project.description}
+                </p>
               )}
-              {project.category && (
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/10 text-white/80 border border-white/20 flex items-center gap-2">
-                  <Tag className="w-4 h-4" />
-                  {project.category}
-                </span>
-              )}
+
+              <div className="flex flex-wrap gap-3 text-sm">
+                {project.startDate && (
+                  <span className="nb-hero-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
+                    <Calendar className="w-4 h-4 text-red-400" />
+                    {formatDate(project.startDate)}
+                  </span>
+                )}
+                {(project.teamSize || displayedTeamMembers.length) > 0 && (
+                  <button
+                    type="button"
+                    onClick={scrollToTeam}
+                    className="nb-hero-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Users className="w-4 h-4 text-red-400" />
+                    {project.teamSize || displayedTeamMembers.length} team members
+                  </button>
+                )}
+                {typeof project.viewCount === "number" && (
+                  <span className="nb-hero-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg">
+                    <TrendingUp className="w-4 h-4 text-red-400" />
+                    {project.viewCount} views
+                  </span>
+                )}
+              </div>
+
+              <div className="nb-hero-panel rounded-xl p-4 max-w-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm nb-hero-panel-label">Overall progress</span>
+                  <span className="text-lg font-bold text-red-400">{displayProgress}%</span>
+                </div>
+                <div className="nb-hero-progress-track w-full rounded-full h-2.5">
+                  <motion.div
+                    className={`bg-gradient-to-r ${getProgressColor(displayProgress)} h-2.5 rounded-full`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${displayProgress}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                  />
+                </div>
+                {milestoneTotal > 0 && (
+                  <p className="text-xs nb-hero-panel-label mt-2">
+                    {milestoneCompleted} of {milestoneTotal} milestones completed
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Project Title */}
-            <h1 className="text-4xl md:text-5xl font-bold">{project.title}</h1>
-            
-            {/* Project Description */}
-            <p className="text-xl text-white/80 max-w-4xl">
-              {project.description}
-            </p>
+            <div className="lg:col-span-2">
+              <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden border border-white/15 bg-white/5 shadow-2xl shadow-black/40">
+                <RemoteImage
+                  src={heroImage}
+                  alt={project.title}
+                  fill
+                  className="object-cover"
+                  onError={(e) => {
+                    e.target.src = getFallbackImage(0);
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
@@ -350,28 +431,6 @@ const ProjectDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Project Image */}
-            {project.imageUrl && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.8 }}
-                className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10"
-              >
-                <div className="relative h-64 w-full rounded-lg overflow-hidden bg-white/10">
-                  <Image
-                    src={project.imageUrl || getFallbackImage(0)}
-                    alt={project.title}
-                    fill
-                    className="object-cover"
-                    onError={(e) => {
-                      e.target.src = getFallbackImage(0);
-                    }}
-                  />
-                </div>
-              </motion.div>
-            )}
-
             {/* Project Details */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -465,7 +524,7 @@ const ProjectDetail = () => {
                       <User className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
                       <div>
                         <div className="font-medium text-white">Mentor</div>
-                        <div className="text-white/80">{project.mentorId.fullName || project.mentorId.displayName || 'Project Mentor'}</div>
+                        <div className="text-white/80">{getPersonDisplayName(project.mentorId)}</div>
                         {project.mentorId.email && (
                           <div className="text-white/50 text-sm">{project.mentorId.email}</div>
                         )}
@@ -478,7 +537,7 @@ const ProjectDetail = () => {
                       <User className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
                       <div>
                         <div className="font-medium text-white">Team Leader</div>
-                        <div className="text-white/80">{project.teamLeaderId.fullName || project.teamLeaderId.displayName || 'Project Lead'}</div>
+                        <div className="text-white/80">{getPersonDisplayName(project.teamLeaderId)}</div>
                         {project.teamLeaderId.email && (
                           <div className="text-white/50 text-sm">{project.teamLeaderId.email}</div>
                         )}
@@ -559,28 +618,79 @@ const ProjectDetail = () => {
 
             {/* Team Members */
             }
-            {project.teamMembers && project.teamMembers.length > 0 && (
+            {hasTeamSection && (
               <motion.div
+                id="project-team"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
                 className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10"
               >
-                <h2 className="text-2xl font-bold mb-6 text-white">Team Members</h2>
+                <h2 className="text-2xl font-bold mb-2 text-white">Team Members</h2>
+                {project.teamLeaderId && (
+                  <p className="text-white/70 text-sm mb-6">
+                    Team Leader:{" "}
+                    <span className="text-white font-semibold">
+                      {getPersonDisplayName(project.teamLeaderId)}
+                    </span>
+                  </p>
+                )}
+                {!project.teamLeaderId && <div className="mb-6" />}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {displayedTeamMembers.map((member, index) => (
+                  {project.teamLeaderId && !teamLeaderInMembers && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8 }}
+                      className="p-4 bg-red-500/10 rounded-lg border border-red-500/30"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
+                          <Star className="w-5 h-5 text-red-400" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-white">
+                            {getPersonDisplayName(project.teamLeaderId)}
+                          </div>
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-red-500/20 text-red-300 border border-red-500/30">
+                            <Star className="w-3 h-3" />
+                            Team Leader
+                          </span>
+                          {project.teamLeaderId.email && (
+                            <a
+                              href={`mailto:${project.teamLeaderId.email}`}
+                              className="text-white/60 text-xs hover:text-white/80 break-all block mt-1"
+                            >
+                              {project.teamLeaderId.email}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                  {displayedTeamMembers.map((member, index) => {
+                    const memberUserId = getUserId(member.userId);
+                    const isTeamLeader =
+                      teamLeaderUserId &&
+                      memberUserId?.toString() === teamLeaderUserId.toString();
+
+                    return (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1, duration: 0.8 }}
-                      className="p-4 bg-white/5 rounded-lg border border-white/10"
+                      className={`p-4 rounded-lg border ${
+                        isTeamLeader
+                          ? "bg-red-500/10 border-red-500/30"
+                          : "bg-white/5 border-white/10"
+                      }`}
                     >
                       <div className="flex items-center gap-3 mb-2">
                         { (member?.userId?.profileImageUrl || member?.profileImageUrl) ? (
-                          <Image
+                          <RemoteImage
                             src={member.userId?.profileImageUrl || member.profileImageUrl}
-                            alt={(member.userId?.fullName || member.userName || 'Team Member') + ' avatar'}
+                            alt={getPersonDisplayName(member.userId || { userName: member.userName }) + " avatar"}
                             width={40}
                             height={40}
                             className="w-10 h-10 rounded-full object-cover"
@@ -591,7 +701,15 @@ const ProjectDetail = () => {
                           </div>
                         )}
                         <div>
-                          <div className="font-semibold text-white">{member.userId?.fullName || member.userId?.displayName || member.userName || 'Team Member'}</div>
+                          <div className="font-semibold text-white">
+                            {getPersonDisplayName(member.userId) || member.userName || "Team Member"}
+                          </div>
+                          {isTeamLeader && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded-full text-xs font-medium bg-red-500/20 text-red-300 border border-red-500/30">
+                              <Star className="w-3 h-3" />
+                              Team Leader
+                            </span>
+                          )}
                           {member.role && (
                             <div className="text-white/60 text-sm">{member.role}</div>
                           )}
@@ -630,7 +748,8 @@ const ProjectDetail = () => {
                         <div className="text-white/40 text-xs mt-3">Joined {formatDate(member.joinedAt)}</div>
                       )}
                     </motion.div>
-                  ))}
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
@@ -698,78 +817,104 @@ const ProjectDetail = () => {
               transition={{ delay: 0.3, duration: 0.8 }}
               className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10"
             >
-              <h3 className="text-xl font-bold mb-4 text-white">Quick Info</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60">Status</span>
-                  <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${getProjectStatusColor(project.status)}`}>
+              <h3 className="text-xl font-bold mb-5 text-white font-display">Quick Info</h3>
+              <div className="divide-y divide-white/10">
+                <div className="flex items-center justify-between py-3 gap-4">
+                  <span className="text-white/60 text-sm">Status</span>
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${getProjectStatusColor(project.status)}`}>
                     {getProjectStatusIcon(project.status)}
-                    {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('_', ' ')}
+                    {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace("_", " ")}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60">Category</span>
-                  <span className="text-white font-medium">
-                    {project.category || 'N/A'}
+                <div className="flex items-center justify-between py-3 gap-4">
+                  <span className="text-white/60 text-sm">Category</span>
+                  <span className="text-white font-medium text-sm text-right">
+                    {project.category || "N/A"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60">Team Size</span>
-                  <span className="text-white font-medium">
-                    {project.teamSize || project.teamMembers?.length || 0} members
-                  </span>
+                <div className="flex items-center justify-between py-3 gap-4">
+                  <span className="text-white/60 text-sm">Team size</span>
+                  {hasTeamSection ? (
+                    <button
+                      type="button"
+                      onClick={scrollToTeam}
+                      className="text-red-400 hover:text-red-300 font-medium text-sm transition-colors"
+                    >
+                      {project.teamSize || displayedTeamMembers.length + (project.teamLeaderId ? 1 : 0)} members →
+                    </button>
+                  ) : (
+                    <span className="text-white font-medium text-sm">0 members</span>
+                  )}
                 </div>
-                {project.isFeatured && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60">Featured</span>
-                    <span className="text-yellow-400">⭐ Yes</span>
-                  </div>
-                )}
-                {typeof project.isPublic === 'boolean' && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60">Visibility</span>
-                    <span className="text-white font-medium">{project.isPublic ? 'Public' : 'Private'}</span>
-                  </div>
-                )}
-                {typeof project.isOverdue === 'boolean' && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60">Overdue</span>
-                    <span className={project.isOverdue ? 'text-red-300' : 'text-white/70'}>{project.isOverdue ? 'Yes' : 'No'}</span>
-                  </div>
-                )}
-                {typeof project.viewCount === 'number' && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60">Views</span>
-                    <span className="text-white font-medium">{project.viewCount}</span>
-                  </div>
-                )}
-                {(typeof project.completedMilestonesCount === 'number' || typeof project.totalMilestonesCount === 'number') && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60">Milestones</span>
-                    <span className="text-white font-medium">{project.completedMilestonesCount || 0} / {project.totalMilestonesCount || (project.milestones?.length || 0)}</span>
-                  </div>
-                )}
-                {(project.progress !== undefined || project.status === 'completed') && (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-white/60">Progress</span>
-                      <span className="text-red-300 font-medium">{getDisplayProgress(project)}%</span>
-                    </div>
-                    <div className="w-full bg-white/20 rounded-full h-2">
-                      <div className="bg-red-500 h-2 rounded-full" style={{ width: `${getDisplayProgress(project)}%` }} />
-                    </div>
-                  </div>
-                )}
-                {/* Rating hidden as requested */}
-                {project.tags && project.tags.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60">Tags</span>
-                    <span className="text-white/70 text-right truncate">
-                      {project.tags.join(', ')}
+                {project.teamLeaderId && (
+                  <div className="flex items-center justify-between py-3 gap-4">
+                    <span className="text-white/60 text-sm">Team leader</span>
+                    <span className="text-white font-medium text-sm text-right">
+                      {getPersonDisplayName(project.teamLeaderId)}
                     </span>
                   </div>
                 )}
+                {typeof project.isPublic === "boolean" && (
+                  <div className="flex items-center justify-between py-3 gap-4">
+                    <span className="text-white/60 text-sm">Visibility</span>
+                    <span className="text-white font-medium text-sm">{project.isPublic ? "Public" : "Private"}</span>
+                  </div>
+                )}
+                {typeof project.isOverdue === "boolean" && (
+                  <div className="flex items-center justify-between py-3 gap-4">
+                    <span className="text-white/60 text-sm">Overdue</span>
+                    <span className={`text-sm font-medium ${project.isOverdue ? "text-red-400" : "text-green-400"}`}>
+                      {project.isOverdue ? "Yes" : "No"}
+                    </span>
+                  </div>
+                )}
+                {typeof project.viewCount === "number" && (
+                  <div className="flex items-center justify-between py-3 gap-4">
+                    <span className="text-white/60 text-sm">Views</span>
+                    <span className="text-white font-medium text-sm">{project.viewCount}</span>
+                  </div>
+                )}
+                {milestoneTotal > 0 && (
+                  <div className="py-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-white/60 text-sm">Milestones</span>
+                      <span className="text-white font-medium text-sm">
+                        {milestoneCompleted} / {milestoneTotal}
+                      </span>
+                    </div>
+                    <div className="flex gap-1">
+                      {Array.from({ length: milestoneTotal }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 flex-1 rounded-full ${
+                            i < milestoneCompleted ? "bg-red-500" : "bg-white/15"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              <div className="mt-5 pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-white/60 text-sm">Progress</span>
+                  <span className="text-red-400 font-bold">{displayProgress}%</span>
+                </div>
+                <div className="w-full bg-white/15 rounded-full h-2.5">
+                  <div
+                    className={`bg-gradient-to-r ${getProgressColor(displayProgress)} h-2.5 rounded-full transition-all duration-700`}
+                    style={{ width: `${displayProgress}%` }}
+                  />
+                </div>
+              </div>
+
+              {project.isFeatured && (
+                <div className="mt-4 flex items-center gap-2 text-yellow-400 text-sm">
+                  <Star className="w-4 h-4 fill-yellow-400" />
+                  Featured project
+                </div>
+              )}
             </motion.div>
 
             {/* Tags */}
@@ -814,7 +959,14 @@ const ProjectDetail = () => {
                 </Link>
               </div>
               {galleryLoading && (
-                <div className="h-48 flex items-center justify-center text-white/60">Loading images...</div>
+                <div className="space-y-3">
+                  <div className="nb-skeleton h-64 w-full rounded-lg" />
+                  <div className="flex justify-between">
+                    <div className="nb-skeleton h-8 w-16 rounded" />
+                    <div className="nb-skeleton h-4 w-12 rounded" />
+                    <div className="nb-skeleton h-8 w-16 rounded" />
+                  </div>
+                </div>
               )}
               {!galleryLoading && galleryItems.length === 0 && (
                 <div className="text-white/60">No images found for this project.</div>
@@ -842,7 +994,7 @@ const ProjectDetail = () => {
                         );
                       }
                       return (
-                        <Image
+                        <RemoteImage
                           src={current?.fileUrl || current?.thumbnailUrl}
                           alt={current?.title || 'Project media'}
                           fill

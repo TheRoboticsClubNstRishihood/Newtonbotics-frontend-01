@@ -4,6 +4,7 @@ import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import CustomCursor from "./components/CustomCursor";
 import { AuthProvider } from "../contexts/AuthContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
 import {
   SITE_URL,
   SITE_NAME,
@@ -172,8 +173,14 @@ export default function RootLayout({ children }) {
   };
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{if(localStorage.getItem('nb_theme')==='light'){document.documentElement.classList.add('theme-light');}}catch(e){}})();",
+          }}
+        />
         <link rel="preconnect" href="https://fonts.cdnfonts.com" crossOrigin="anonymous" />
         <link
           rel="preload"
@@ -204,12 +211,14 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${orbitron.variable} font-sans antialiased`}>
-        <AuthProvider>
-          <CustomCursor />
-          <Navbar />
-          {children}
-          <Footer />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <CustomCursor />
+            <Navbar />
+            {children}
+            <Footer />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

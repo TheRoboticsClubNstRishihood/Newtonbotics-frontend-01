@@ -22,6 +22,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import mediaService from "../../lib/media";
+import { CardSkeletonGrid, FilterBarSkeleton } from "@/components/PageSkeletons";
 
 // Video Player Component that handles play/pause based on hover
 const VideoPlayer = ({ src, isPlaying, itemId }) => {
@@ -364,9 +365,22 @@ export default function GalleryClient() {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white">
-        <div className="container mx-auto px-6 py-16 text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-500 mx-auto mb-8"></div>
-          <h2 className="text-2xl font-bold text-white">Loading Gallery...</h2>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
+              Our Gallery
+            </h1>
+            <p className="text-lg text-white/60 max-w-2xl mx-auto">
+              Unfiltered moments from our builds, events, and club fun.
+            </p>
+          </div>
+          <FilterBarSkeleton fields={4} />
+          <CardSkeletonGrid
+            count={10}
+            variant="gallery"
+            cols="grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+            gap="gap-4"
+          />
         </div>
       </div>
     );
@@ -392,22 +406,19 @@ export default function GalleryClient() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0b0f16] via-[#0b0f16] to-black" />
-        <div className="relative container mx-auto px-6 py-16 text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-b from-white via-gray-300 to-gray-500">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-red-600">
             Our Gallery
           </h1>
-          <p className="mt-4 text-white/75 max-w-2xl mx-auto">
+          <p className="text-lg text-white/60 max-w-2xl mx-auto">
             Unfiltered moments from our builds, events, and club fun.
           </p>
         </div>
-      </header>
 
       {/* Filters and Search */}
-      <section className="py-8 bg-white/5 backdrop-blur-lg mx-6 rounded-2xl mb-8">
-        <div className="container mx-auto px-6">
+      <section className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 mb-8">
           <h3 className="text-xl font-bold mb-4 text-white">Filters & Search</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
@@ -506,11 +517,10 @@ export default function GalleryClient() {
               </span>
             </div>
           )}
-        </div>
       </section>
 
       {/* Media Grid/List */}
-      <main className="container mx-auto px-6 pb-24">
+      <main className="pb-24">
         {mediaItems.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📁</div>
@@ -714,6 +724,8 @@ export default function GalleryClient() {
           </div>
         )}
       </main>
+
+      </div>
 
       {/* Lightbox */}
       <AnimatePresence>

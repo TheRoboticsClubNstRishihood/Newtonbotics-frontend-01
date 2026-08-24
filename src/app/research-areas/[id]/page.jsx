@@ -6,6 +6,7 @@ import { Brain, Box, Layout, ArrowLeft, Users, Calendar, Award, ExternalLink, Us
 import Link from "next/link";
 import Image from "next/image";
 import { API_BASE_URL } from "@/lib/api";
+import { DetailPageSkeleton, TeamMemberCardSkeleton } from "@/components/PageSkeletons";
 
 const ResearchAreaDetail = () => {
   const params = useParams();
@@ -115,14 +116,7 @@ const ResearchAreaDetail = () => {
   }, [researchArea, API_BASE_URL]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-white/60">Loading research area...</p>
-        </div>
-      </div>
-    );
+    return <DetailPageSkeleton />;
   }
 
   if (error || !researchArea) {
@@ -437,9 +431,10 @@ console.log(researchArea,'researchArea');
                   </span>
                 </h3>
                 {loadingMembers ? (
-                  <div className="flex items-center justify-center py-6">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-500"></div>
-                    <span className="ml-2 text-white/60 text-sm">Loading...</span>
+                  <div className="grid sm:grid-cols-2 gap-3 py-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <TeamMemberCardSkeleton key={i} delay={i * 80} />
+                    ))}
                   </div>
                 ) : teamMembers.length > 0 ? (
                   <div className="space-y-3">

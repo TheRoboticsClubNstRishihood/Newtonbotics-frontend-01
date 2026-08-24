@@ -100,7 +100,7 @@ const NewsTicker = () => {
             </span>
           )}
           <span
-            className="mx-8 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-white/35 pointer-events-none"
+            className="nb-ticker-separator-dot mx-8 inline-block h-1.5 w-1.5 shrink-0 rounded-full pointer-events-none"
             aria-hidden="true"
           />
         </span>
@@ -200,12 +200,12 @@ const NewsTicker = () => {
 
   return (
     <>
-      <div className="relative z-[90] bg-black border-b border-white/10 shadow-sm overflow-hidden pointer-events-auto">
+      <div className="nb-news-ticker relative z-[90] border-b border-white/10 shadow-sm overflow-hidden pointer-events-auto">
         <div className="container mx-auto px-4 py-2.5 relative">
           <div className="flex items-center justify-between min-h-[32px]">
             <div className="flex items-center gap-2 mr-4 md:mr-6 flex-shrink-0 pointer-events-none">
               <div
-                className={`w-2 h-2 rounded-full ${isPaused ? "bg-white" : "bg-white animate-pulse"}`}
+                className={`nb-ticker-pulse-dot w-2 h-2 rounded-full ${isPaused ? "is-active scale-125 shadow-sm" : "animate-pulse"}`}
               />
               <span className="text-xs font-bold text-white uppercase tracking-wide hidden sm:inline">
                 {isLoading ? "Loading..." : "Latest News"}
@@ -243,8 +243,8 @@ const NewsTicker = () => {
                 type="button"
                 aria-label={isPaused ? "Resume news ticker" : "Pause news ticker"}
                 onClick={handleTickerClick}
-                className={`w-3 h-3 rounded-full transition-all duration-300 cursor-pointer hover:scale-125 border-0 p-0 [clip-path:none] ${
-                  isPaused ? "bg-white scale-125 shadow-sm" : "bg-white/60 animate-pulse"
+                className={`nb-ticker-pulse-dot w-3 h-3 rounded-full transition-all duration-300 cursor-pointer hover:scale-125 border-0 p-0 [clip-path:none] ${
+                  isPaused ? "is-active scale-125 shadow-sm" : "animate-pulse"
                 }`}
               />
             </div>

@@ -50,6 +50,129 @@ html.nb-custom-cursor label {
   will-change: transform;
 }
 
+/* News ticker — dots and bar readable in light + dark theme */
+.nb-news-ticker {
+  background-color: #000000;
+}
+
+.nb-ticker-pulse-dot {
+  background-color: rgb(255 255 255 / 0.55);
+}
+
+.nb-ticker-pulse-dot.is-active {
+  background-color: #ffffff;
+}
+
+.nb-ticker-separator-dot {
+  background-color: rgb(255 255 255 / 0.35);
+}
+
+html.theme-light .nb-news-ticker {
+  background-color: rgba(255, 255, 255, 0.94);
+  border-bottom-color: rgb(17 24 39 / 0.12);
+}
+
+html.theme-light .nb-ticker-pulse-dot {
+  background-color: rgb(220 38 38 / 0.45);
+}
+
+html.theme-light .nb-ticker-pulse-dot.is-active {
+  background-color: #dc2626;
+}
+
+html.theme-light .nb-ticker-separator-dot {
+  background-color: rgb(220 38 38 / 0.4);
+}
+
+/* Project detail hero — keep readable on dark band in light theme */
+.nb-project-hero {
+  background: linear-gradient(to bottom, #111827, #000000);
+  color: #ffffff;
+}
+
+.nb-project-hero-title {
+  color: #ffffff;
+}
+
+html.theme-light .nb-project-hero {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 55%, #000000 100%) !important;
+  border-bottom-color: rgb(17 24 39 / 0.15) !important;
+}
+
+html.theme-light .nb-project-hero .nb-project-hero-title,
+html.theme-light .nb-project-hero .nb-project-hero-muted,
+html.theme-light .nb-project-hero .nb-project-hero-subtle {
+  color: #f9fafb !important;
+}
+
+html.theme-light .nb-project-hero .nb-project-hero-subtle {
+  color: rgb(249 250 251 / 0.75) !important;
+}
+
+html.theme-light .nb-project-hero .text-white\/60 {
+  color: rgb(249 250 251 / 0.65) !important;
+}
+
+.nb-project-hero .nb-hero-chip,
+.nb-project-hero .nb-hero-panel,
+.nb-project-hero .nb-hero-category {
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f3f4f6;
+  clip-path: none;
+  border-radius: 0.5rem;
+}
+
+.nb-project-hero .nb-hero-chip:hover {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.nb-project-hero .nb-hero-panel {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nb-project-hero .nb-hero-progress-track {
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.nb-project-hero .nb-hero-back {
+  color: rgb(229 231 235 / 0.9);
+}
+
+.nb-project-hero .nb-hero-back:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.nb-project-hero .nb-hero-panel-label {
+  color: #e5e7eb;
+}
+
+html.theme-light .nb-project-hero .nb-hero-panel-label {
+  color: #f3f4f6 !important;
+}
+
+/* Prevent global light-theme card overrides from whitening hero chips */
+html.theme-light .nb-project-hero .nb-hero-chip,
+html.theme-light .nb-project-hero .nb-hero-panel,
+html.theme-light .nb-project-hero .nb-hero-category {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  color: #f9fafb !important;
+}
+
+html.theme-light .nb-project-hero .nb-hero-chip:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html.theme-light .nb-project-hero .nb-hero-panel {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.theme-light .nb-project-hero .nb-hero-progress-track {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .news-ticker-track {
     animation: none;
@@ -203,20 +326,6 @@ html.nb-custom-cursor label {
   .font-heading {
     font-family: 'Neuropol X', var(--font-orbitron), sans-serif;
   }
-
-  button {
-    border-radius: 0 !important;
-    clip-path: polygon(
-      8px 0,
-      calc(100% - 8px) 0,
-      100% 8px,
-      100% calc(100% - 8px),
-      calc(100% - 8px) 100%,
-      8px 100%,
-      0 calc(100% - 8px),
-      0 8px
-    );
-  }
 }
 
 @layer components {
@@ -233,6 +342,24 @@ html.nb-custom-cursor label {
       0 calc(100% - var(--nb-chamfer, 8px)),
       0 var(--nb-chamfer, 8px)
     );
+  }
+
+  /* CSS borders don't follow clip-path — use drop-shadow along the clipped edge */
+  .nb-chamfer[class*="border"] {
+    border-width: 0 !important;
+    filter: drop-shadow(0 0 0 1px var(--nb-chamfer-border, rgba(255, 255, 255, 0.2)));
+  }
+
+  .nb-chamfer.border-white\/20 {
+    --nb-chamfer-border: rgba(255, 255, 255, 0.2);
+  }
+
+  .nb-chamfer.border-white\/10 {
+    --nb-chamfer-border: rgba(255, 255, 255, 0.1);
+  }
+
+  html.theme-light .nb-chamfer[class*="border"] {
+    --nb-chamfer-border: rgba(17, 24, 39, 0.18);
   }
 
   .nb-chamfer-lg {
@@ -494,3 +621,397 @@ html.nb-custom-cursor label {
 
 /* Hide scroll indicator once user scrolls past hero (pure CSS can't detect scroll, 
    but the indicator is at bottom of hero, so it scrolls out of view naturally) */
+
+/* ===== Light theme (html.theme-light) ===== */
+html.theme-light {
+  color-scheme: light;
+  background-color: #f3f4f6;
+}
+
+html.theme-light body {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+html.theme-light .bg-black,
+html.theme-light .bg-black\/95,
+html.theme-light .bg-black\/70,
+html.theme-light .bg-black\/40,
+html.theme-light .bg-black\/20,
+html.theme-light .bg-neutral-900,
+html.theme-light .bg-\[\#070b12\],
+html.theme-light .bg-\[\#0b1018\] {
+  background-color: #f3f4f6 !important;
+}
+
+html.theme-light nav.bg-black,
+html.theme-light .bg-black\/95.backdrop-blur-lg,
+html.theme-light footer {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+}
+
+html.theme-light .bg-white\/5,
+html.theme-light .bg-white\/10,
+html.theme-light .bg-white\/\[0\.06\],
+html.theme-light .bg-white\/\[0\.04\],
+html.theme-light .bg-white\/\[0\.03\] {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.theme-light .hover\:bg-white\/10:hover,
+html.theme-light .hover\:bg-white\/20:hover {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+html.theme-light .text-white {
+  color: #111827;
+}
+
+html.theme-light .text-white\/90 {
+  color: rgb(17 24 39 / 0.92);
+}
+
+html.theme-light .text-white\/80 {
+  color: rgb(17 24 39 / 0.82);
+}
+
+html.theme-light .text-white\/75 {
+  color: rgb(17 24 39 / 0.75);
+}
+
+html.theme-light .text-white\/70 {
+  color: rgb(17 24 39 / 0.7);
+}
+
+html.theme-light .text-white\/60 {
+  color: rgb(17 24 39 / 0.62);
+}
+
+html.theme-light .text-white\/50 {
+  color: rgb(17 24 39 / 0.52);
+}
+
+html.theme-light .text-white\/45 {
+  color: rgb(17 24 39 / 0.48);
+}
+
+html.theme-light .text-white\/40 {
+  color: rgb(17 24 39 / 0.42);
+}
+
+html.theme-light .text-white\/30 {
+  color: rgb(17 24 39 / 0.35);
+}
+
+html.theme-light .text-gray-300,
+html.theme-light .hover\:text-white:hover {
+  color: #374151;
+}
+
+html.theme-light .text-gray-400 {
+  color: #6b7280;
+}
+
+html.theme-light .placeholder-white\/50::placeholder,
+html.theme-light .placeholder-white\/60::placeholder {
+  color: rgb(17 24 39 / 0.45);
+}
+
+html.theme-light .border-white\/10,
+html.theme-light .border-white\/15,
+html.theme-light .border-white\/20,
+html.theme-light .border-white\/25 {
+  border-color: rgb(17 24 39 / 0.12);
+}
+
+html.theme-light .ring-white\/10 {
+  --tw-ring-color: rgb(17 24 39 / 0.1);
+}
+
+html.theme-light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(17 24 39 / 0.1);
+}
+
+html.theme-light input,
+html.theme-light textarea,
+html.theme-light select {
+  color: #111827;
+}
+
+html.theme-light select option {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+html.theme-light img[src*="white-logo"] {
+  filter: invert(1);
+}
+
+html.theme-light :is(
+  .bg-red-500,
+  .bg-red-600,
+  .bg-red-700,
+  .hover\:bg-red-600:hover,
+  .hover\:bg-red-700:hover,
+  .hover\:bg-red-900:hover
+) {
+  color: #fff !important;
+}
+
+html.theme-light :is(.bg-red-500, .bg-red-600, .bg-red-700) .text-white,
+html.theme-light :is(.bg-red-500, .bg-red-600, .bg-red-700) [class*="text-white"] {
+  color: #fff !important;
+}
+
+html.theme-light .text-red-300,
+html.theme-light .text-red-400,
+html.theme-light .text-red-500 {
+  color: #dc2626;
+}
+
+/* Semantic status colors — readable on light backgrounds */
+html.theme-light .text-yellow-200,
+html.theme-light .text-yellow-300,
+html.theme-light .text-yellow-400 {
+  color: #b45309;
+}
+
+html.theme-light .text-yellow-300\/80 {
+  color: rgb(180 83 9 / 0.85);
+}
+
+html.theme-light .text-blue-300,
+html.theme-light .text-blue-400 {
+  color: #1d4ed8;
+}
+
+html.theme-light .text-green-300,
+html.theme-light .text-green-400 {
+  color: #15803d;
+}
+
+html.theme-light .text-cyan-300,
+html.theme-light .text-cyan-400 {
+  color: #0e7490;
+}
+
+html.theme-light .text-emerald-400 {
+  color: #047857;
+}
+
+html.theme-light .text-pink-400 {
+  color: #db2777;
+}
+
+html.theme-light .bg-yellow-500\/10,
+html.theme-light .bg-yellow-500\/20,
+html.theme-light .bg-yellow-50\/10 {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+}
+
+html.theme-light .border-yellow-400,
+html.theme-light .border-yellow-500\/20,
+html.theme-light .border-yellow-500\/30 {
+  border-color: rgba(217, 119, 6, 0.45) !important;
+}
+
+html.theme-light .bg-blue-500\/20 {
+  background-color: rgba(59, 130, 246, 0.12) !important;
+}
+
+html.theme-light .border-blue-500\/30 {
+  border-color: rgba(37, 99, 235, 0.35) !important;
+}
+
+html.theme-light .bg-green-500\/20 {
+  background-color: rgba(34, 197, 94, 0.12) !important;
+}
+
+html.theme-light .border-green-500\/30 {
+  border-color: rgba(22, 163, 74, 0.35) !important;
+}
+
+html.theme-light .bg-gray-500\/20 {
+  background-color: rgba(107, 114, 128, 0.12) !important;
+}
+
+html.theme-light .border-gray-500\/30 {
+  border-color: rgba(107, 114, 128, 0.35) !important;
+}
+
+/* Warning / info notices */
+.nb-notice-warning {
+  border-left: 4px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  padding: 0.75rem;
+  color: #fde68a;
+}
+
+.nb-notice-warning svg {
+  color: #fbbf24;
+}
+
+html.theme-light .nb-notice-warning {
+  background: #fffbeb;
+  border-left-color: #d97706;
+  color: #78350f;
+}
+
+html.theme-light .nb-notice-warning svg {
+  color: #d97706;
+}
+
+html.theme-light .text-indigo-300 {
+  color: #3730a3;
+}
+
+html.theme-light .shadow-2xl {
+  --tw-shadow-color: rgb(15 23 42 / 0.12);
+}
+
+/* Auth page — scoped light/dark fixes */
+.nb-auth-media-panel {
+  background-color: #0b1018;
+}
+
+html.theme-light .nb-auth-media-panel {
+  background-color: #111827 !important;
+}
+
+.nb-auth-media-overlay {
+  background-color: rgb(0 0 0 / 0.38);
+}
+
+html.theme-light .nb-auth-media-overlay {
+  background-color: rgb(0 0 0 / 0.22) !important;
+}
+
+.nb-auth-card {
+  background: linear-gradient(to bottom right, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.03));
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+html.theme-light .nb-auth-card {
+  background: #ffffff !important;
+  border-color: rgb(17 24 39 / 0.12) !important;
+  box-shadow: 0 20px 40px rgb(15 23 42 / 0.08);
+}
+
+.nb-auth-tabs {
+  background-color: rgb(255 255 255 / 0.05);
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+html.theme-light .nb-auth-tabs {
+  background-color: rgb(17 24 39 / 0.05) !important;
+  border-color: rgb(17 24 39 / 0.12) !important;
+}
+
+.nb-auth-tab-active {
+  background-color: rgb(255 255 255 / 0.18);
+  color: #ffffff;
+}
+
+html.theme-light .nb-auth-tab-active {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.nb-auth-tab-inactive {
+  color: rgb(255 255 255 / 0.7);
+}
+
+html.theme-light .nb-auth-tab-inactive {
+  color: rgb(17 24 39 / 0.62);
+}
+
+html.theme-light .nb-auth-tab-inactive:hover {
+  color: #111827 !important;
+}
+
+.nb-auth-input {
+  border-width: 1px;
+  border-style: solid;
+  background-color: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.15);
+  color: #ffffff;
+}
+
+html.theme-light .nb-auth-input {
+  background-color: #ffffff !important;
+  border-color: rgb(17 24 39 / 0.16) !important;
+  color: #111827 !important;
+}
+
+html.theme-light .nb-auth-input::placeholder {
+  color: rgb(17 24 39 / 0.45) !important;
+}
+
+.nb-auth-label {
+  color: rgb(255 255 255 / 0.55);
+}
+
+html.theme-light .nb-auth-label {
+  color: rgb(17 24 39 / 0.58) !important;
+}
+
+.nb-auth-icon {
+  color: rgb(255 255 255 / 0.5);
+}
+
+html.theme-light .nb-auth-icon {
+  color: rgb(17 24 39 / 0.45) !important;
+}
+
+.nb-auth-muted {
+  color: rgb(255 255 255 / 0.6);
+}
+
+html.theme-light .nb-auth-muted {
+  color: rgb(17 24 39 / 0.62) !important;
+}
+
+.nb-auth-link {
+  color: rgb(255 255 255 / 0.7);
+}
+
+html.theme-light .nb-auth-link {
+  color: #dc2626 !important;
+}
+
+html.theme-light .nb-auth-link:hover {
+  color: #b91c1c !important;
+}
+
+html.theme-light .nb-auth-shell {
+  color: #111827;
+}
+
+@keyframes nb-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.nb-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+html.theme-light .nb-skeleton {
+  background-color: rgba(15, 23, 42, 0.08);
+}
+
+.nb-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  animation: nb-shimmer 1.15s ease-in-out infinite;
+}
+
+html.theme-light .nb-skeleton::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+}

@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import inventoryService from "../../../lib/inventory";
 import authService from "../../../lib/auth";
 import { useAuth } from "../../../contexts/AuthContext";
-import LoadingSpinner from "../../../components/LoadingSpinner";
+import { DetailPageSkeleton } from "@/components/PageSkeletons";
 import { API_BASE_URL } from "@/lib/api";
 
 export default function EquipmentDetailPage(){
@@ -132,7 +132,7 @@ export default function EquipmentDetailPage(){
     return ()=>{ isMounted=false; };
   },[params.id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner /></div>;
+  if (loading) return <DetailPageSkeleton />;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-400">{error}</div>;
   if (!item) return <div className="min-h-screen flex items-center justify-center text-white/70">Not found</div>;
 
