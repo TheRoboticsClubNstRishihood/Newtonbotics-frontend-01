@@ -11,7 +11,8 @@ import { API_BASE_URL } from "@/lib/api";
 import { NEWTONBOTICS_LOGO, NEWTONBOTICS_LOGO_WIDTH, NEWTONBOTICS_LOGO_HEIGHT } from "@/lib/branding";
 import HeroRobot from "../components/HeroRobot";
 import ResearchRobot3D from "../components/ResearchRobot3D";
-import LazyLoader, { LazySkeleton } from "../components/LazyLoader";
+import { LazySkeleton } from "../components/LazyLoader";
+import { ResearchAreaCardSkeleton } from "@/components/PageSkeletons";
 
 // Lazy load below-the-fold components for better initial page load
 const RawGallery = lazy(() => import("../components/RawGallery"));
@@ -228,7 +229,7 @@ const HomePage = () => {
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start w-full sm:w-auto">
                 <Link href="/Projects" className="inline-block w-full sm:w-auto">
-                  <div className="nb-cta nb-chamfer-lg bg-gradient-to-r from-red-500 to-red-600 text-white px-5 py-3 text-sm sm:px-8 sm:py-4 sm:text-lg font-semibold hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 group w-full sm:w-auto">
+                  <div className="nb-cta nb-chamfer-lg bg-red-600 hover:bg-red-700 text-white px-5 py-3 text-sm sm:px-8 sm:py-4 sm:text-lg font-semibold hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 group w-full sm:w-auto">
                     Discover Our Innovations
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform shrink-0" />
                   </div>
@@ -256,7 +257,7 @@ const HomePage = () => {
       <section id="features" className="py-16 md:py-24 relative z-10" aria-label="Cutting-Edge Technology Features">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center mb-12 sm:mb-16 section-fade-in">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-400 to-white pb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 text-white pb-4">
               Cutting-Edge Technology
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-white/80 max-w-3xl mx-auto px-4">
@@ -272,7 +273,7 @@ const HomePage = () => {
                 className="bg-white/5 rounded-xl sm:rounded-2xl p-5 sm:p-6 lg:p-8 border border-white/10 hover:border-red-500/20 hover:bg-white/[0.08] transition-all duration-300 group section-fade-in"
                 style={{ animationDelay: `${index * 80}ms` }}
               >
-                <div className="bg-gradient-to-br from-white/10 to-red-500/10 p-3 sm:p-4 rounded-xl w-fit mb-4 sm:mb-6 group-hover:shadow-lg transition-shadow duration-300">
+                <div className="bg-white/10 p-3 sm:p-4 rounded-xl w-fit mb-4 sm:mb-6 group-hover:shadow-lg transition-shadow duration-300">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 text-white group-hover:text-red-400 transition-colors duration-300">
@@ -299,7 +300,7 @@ const HomePage = () => {
             {/* Right — 3/4: heading + research information */}
             <div className="lg:col-span-3 order-1 lg:order-2">
               <div className="text-center lg:text-left mb-8 sm:mb-10 section-fade-in">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-400 to-white">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 text-white">
                   Research Areas
                 </h2>
               </div>
@@ -307,17 +308,7 @@ const HomePage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 {loadingResearchAreas ? (
                   Array.from({ length: 4 }).map((_, index) => (
-                    <div
-                      key={`loading-${index}`}
-                      className="bg-white/5 rounded-xl p-4 lg:p-5 border border-white/10"
-                    >
-                      <div className="animate-pulse">
-                        <div className="bg-white/10 rounded-lg p-3 w-fit mb-3 h-8"></div>
-                        <div className="bg-white/10 rounded h-5 mb-2 w-3/4"></div>
-                        <div className="bg-white/10 rounded h-3 mb-2 w-full"></div>
-                        <div className="bg-white/10 rounded h-3 w-1/2"></div>
-                      </div>
-                    </div>
+                    <ResearchAreaCardSkeleton key={`loading-${index}`} delay={index * 80} compact />
                   ))
                 ) : researchAreas.length > 0 ? (
                   researchAreas.map((area, index) => (
@@ -326,7 +317,7 @@ const HomePage = () => {
                         className="bg-white/5 rounded-xl p-4 lg:p-5 hover:bg-white/10 transition-all duration-300 border border-white/10 hover:border-red-500/20 group cursor-pointer section-fade-in h-full"
                         style={{ animationDelay: `${index * 100}ms` }}
                       >
-                        <div className="bg-gradient-to-br from-white/10 to-red-500/10 p-2.5 rounded-lg w-fit mb-3 group-hover:shadow-lg transition-shadow duration-300">
+                        <div className="bg-white/10 p-2.5 rounded-lg w-fit mb-3 group-hover:shadow-lg transition-shadow duration-300">
                           {area.category === 'AI/ML' ? <Brain className="w-6 h-6 sm:w-7 sm:h-7 text-white" /> :
                            area.category === 'Mechanics' ? <Box className="w-6 h-6 sm:w-7 sm:h-7 text-white" /> :
                            <Layout className="w-6 h-6 sm:w-7 sm:h-7 text-white" />}
@@ -347,7 +338,7 @@ const HomePage = () => {
                       className="bg-white/5 rounded-xl p-4 lg:p-5 hover:bg-white/10 transition-all duration-300 border border-white/10 hover:border-red-500/20 group section-fade-in"
                       style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <div className="bg-gradient-to-br from-white/10 to-red-500/10 p-2.5 rounded-lg w-fit mb-3 group-hover:shadow-lg transition-shadow duration-300 [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-7 sm:[&>svg]:h-7">
+                      <div className="bg-white/10 p-2.5 rounded-lg w-fit mb-3 group-hover:shadow-lg transition-shadow duration-300 [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-7 sm:[&>svg]:h-7">
                         {area.icon}
                       </div>
                       <h3 className="text-base sm:text-lg lg:text-xl font-bold mb-2 text-white group-hover:text-red-400 transition-colors duration-300">
@@ -375,7 +366,7 @@ const HomePage = () => {
       </section>
 
       {/* ===== IMPACT SECTION ===== */}
-      <Suspense fallback={<LazyLoader label="Loading impact" />}>
+      <Suspense fallback={<LazySkeleton cards={6} variant="stat" cols="grid-cols-2 sm:grid-cols-3" />}>
         <ImpactSection />
       </Suspense>
 
@@ -403,7 +394,7 @@ const HomePage = () => {
             </div>
             
             <div className="relative z-10">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-400 to-white">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 text-white">
                 Stay Connected
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-white/80 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-4">
@@ -425,7 +416,7 @@ const HomePage = () => {
                       />
                       <button
                         type="submit"
-                        className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg sm:rounded-xl font-semibold shadow-lg shadow-red-500/30 hover:shadow-red-500/50 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 group text-sm sm:text-base"
+                        className="px-6 sm:px-8 py-3 sm:py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg sm:rounded-xl font-semibold hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 group text-sm sm:text-base"
                       >
                         Continue
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
@@ -473,7 +464,7 @@ const HomePage = () => {
                         <button
                           type="submit"
                           disabled={isNewsletterSubmitting}
-                          className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 disabled:from-red-800 disabled:to-red-900 disabled:cursor-not-allowed text-white rounded-lg font-semibold shadow-lg shadow-red-500/30 hover:shadow-red-500/50 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 group"
+                          className="flex-1 px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-800 disabled:cursor-not-allowed text-white rounded-lg font-semibold hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 flex items-center justify-center gap-2 group"
                         >
                           {isNewsletterSubmitting ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

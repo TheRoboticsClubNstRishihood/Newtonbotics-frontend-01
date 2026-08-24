@@ -5,8 +5,8 @@ export default function AuthPageShell({ children, withGrid = true, variant = "de
   const blobTwo = variant === "brand" ? "bg-indigo-500/10" : "bg-indigo-500/15";
 
   return (
-    <div className="relative min-h-[calc(100svh-5rem)] flex items-center justify-center overflow-visible bg-[#070b12] text-white">
-      <div className="absolute inset-0 -z-10">
+    <div className="relative min-h-[calc(100svh-5rem)] flex items-center justify-center overflow-x-hidden bg-[#070b12] text-white nb-auth-shell">
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className={`absolute -top-24 -left-10 w-[40rem] h-[40rem] rounded-full ${blobOne} blur-3xl`} />
         <div className={`absolute bottom-[-8rem] right-[-6rem] w-[42rem] h-[42rem] rounded-full ${blobTwo} blur-3xl`} />
         {variant === "brand" && (
@@ -24,8 +24,8 @@ export default function AuthPageShell({ children, withGrid = true, variant = "de
         )}
       </div>
 
-      <div className="relative z-10 w-full container mx-auto px-6 py-6">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center gap-8 lg:flex-row">
+      <div className="relative z-10 w-full container mx-auto px-4 sm:px-6 py-6">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-8 lg:grid-cols-[minmax(240px,28rem)_minmax(280px,36rem)] xl:grid-cols-[minmax(280px,32rem)_minmax(320px,42rem)] lg:justify-center lg:items-start lg:gap-10">
           {children}
         </div>
       </div>

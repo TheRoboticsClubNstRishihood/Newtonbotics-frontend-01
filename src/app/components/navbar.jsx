@@ -9,6 +9,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
 import { ADMIN_PANEL_URL } from "@/lib/site";
 import { NEWTONBOTICS_LOGO, NEWTONBOTICS_LOGO_WIDTH, NEWTONBOTICS_LOGO_HEIGHT } from "@/lib/branding";
+import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -198,9 +199,6 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex space-x-6 items-center">
-          <Link href="/DashBoard" className={`${getActiveStyles("/DashBoard")} pb-1`}>
-            Home
-          </Link>
           <Link href="/aboutus" className={`${getActiveStyles("/aboutus")} pb-1`}>
             About Us
           </Link>
@@ -226,15 +224,15 @@ const Navbar = () => {
             Contact Us
           </Link>
 
-          {/* Auth area */}
-          {!isLoggedIn ? (
-            <Link
-              href="/auth"
-              className="inline-block px-4 py-2 bg-red-600 text-white nb-chamfer hover:bg-red-700 transition"
-            >
-              Sign in
-            </Link>
-          ) : (
+          <div className="flex items-center gap-3">
+            {!isLoggedIn ? (
+              <Link
+                href="/auth"
+                className="inline-block px-4 py-2 bg-red-600 text-white nb-chamfer hover:bg-red-700 transition"
+              >
+                Sign in
+              </Link>
+            ) : (
             <div
               className="relative group"
               ref={profileRef}
@@ -370,16 +368,20 @@ const Navbar = () => {
               </div>
             </div>
           )}
+            <ThemeToggle />
+          </div>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden text-2xl text-white focus:outline-none"
-          onClick={toggleMenu}
-          aria-label={isOpen ? "Close menu" : "Open menu"}
-        >
-          {isOpen ? <FiX /> : <FiMenu />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            className="text-2xl text-white focus:outline-none"
+            onClick={toggleMenu}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+          >
+            {isOpen ? <FiX /> : <FiMenu />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -394,7 +396,6 @@ const Navbar = () => {
         }}
       >
         <div className="py-2 min-h-0">
-          <Link href="/DashBoard" className={getMobileActiveStyles("/DashBoard")} onClick={() => setIsOpen(false)}>Home</Link>
           <Link href="/aboutus" className={getMobileActiveStyles("/aboutus")} onClick={() => setIsOpen(false)}>About Us</Link>
           <Link href="/Projects" className={getMobileActiveStyles("/Projects")} onClick={() => setIsOpen(false)}>Projects</Link>
           {/* <Link href="/Workshops" className={getMobileActiveStyles("/Workshops")} onClick={() => setIsOpen(false)}>Workshops</Link> */}
@@ -406,15 +407,19 @@ const Navbar = () => {
 
           {/* Mobile Profile Section */}
           {!isLoggedIn ? (
-            <Link
-              href="/auth"
-              className="block mx-4 my-3 py-2 bg-red-600 text-white text-center nb-chamfer hover:bg-red-700 transition"
-              onClick={() => setIsOpen(false)}
-            >
-              Sign in
-            </Link>
+            <div className="mx-4 my-3 flex items-center gap-3">
+              <Link
+                href="/auth"
+                className="flex-1 py-2 bg-red-600 text-white text-center nb-chamfer hover:bg-red-700 transition"
+                onClick={() => setIsOpen(false)}
+              >
+                Sign in
+              </Link>
+              <ThemeToggle />
+            </div>
           ) : (
-            <div className="mx-2 my-2 rounded-lg border border-white/10 bg-black/40">
+            <div className="mx-2 my-2">
+            <div className="rounded-lg border border-white/10 bg-black/40">
               <div className="px-4 py-3 text-white/80 text-sm border-b border-white/10 bg-white/5">
                 <div className="flex items-center gap-3">
                   {userAvatarUrl ? (
@@ -518,6 +523,10 @@ const Navbar = () => {
                 <FiLogOut className="w-4 h-4" />
                 <span>Logout</span>
               </button>
+            </div>
+            <div className="mx-4 my-3 flex justify-end">
+              <ThemeToggle />
+            </div>
             </div>
           )}
         </div>

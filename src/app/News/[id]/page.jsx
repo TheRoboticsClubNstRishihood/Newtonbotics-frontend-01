@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import newsService, { isValidObjectId } from "../../../lib/news";
 import Image from "next/image";
 import { Calendar, ArrowLeft } from "lucide-react";
+import { ArticleDetailSkeleton } from "@/components/PageSkeletons";
 
 export default function NewsDetailPage() {
   const params = useParams();
@@ -46,7 +47,7 @@ export default function NewsDetailPage() {
     return () => { isMounted = false; };
   }, [id]);
 
-  if (isLoading) return <div className="min-h-screen bg-black text-white grid place-items-center">Loading…</div>;
+  if (isLoading) return <ArticleDetailSkeleton />;
   if (error) {
     return (
       <div className="min-h-screen bg-black text-white grid place-items-center px-4">

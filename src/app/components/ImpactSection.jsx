@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { Rocket, Award, Users, Globe, Star, Calendar } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api";
+import { StatCardSkeleton } from "@/components/PageSkeletons";
 
 const DEFAULT_ACHIEVEMENTS = [
   { id: "researchProjects", number: "50+", label: "Research Projects", icon: <Rocket className="w-8 h-8" /> },
@@ -16,6 +17,10 @@ const DEFAULT_ACHIEVEMENTS = [
 export default function ImpactSection() {
   const [metrics, setMetrics] = useState(null);
   const [loadingMetrics, setLoadingMetrics] = useState(false);
+  const [sectionTitle, setSectionTitle] = useState("Our Impact");
+  const [sectionSubtitle, setSectionSubtitle] = useState(
+    "Numbers that speak for our commitment to excellence in robotics research and innovation"
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -27,6 +32,8 @@ export default function ImpactSection() {
         const data = await res.json();
         if (isMounted && data.success) {
           setMetrics(data);
+          if (data.data?.sectionTitle) setSectionTitle(data.data.sectionTitle);
+          if (data.data?.sectionSubtitle) setSectionSubtitle(data.data.sectionSubtitle);
         }
       } catch {
         // Backend may be offline in local/dev — keep DEFAULT_ACHIEVEMENTS.
@@ -56,28 +63,24 @@ export default function ImpactSection() {
 
   return (
     <section className="py-16 md:py-24 relative z-10 bg-black/20 backdrop-blur-[1px]">
-      <div className="absolute inset-0 bg-gradient-to-r from-white/[0.02] to-white/[0.02]"></div>
+      <div className="absolute inset-0 bg-white/[0.02]"></div>
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 lg:gap-10 items-center">
           {/* Left — 3/4: heading + impact information */}
           <div className="lg:col-span-3 order-1 lg:order-1">
             <div className="text-center lg:text-left mb-8 sm:mb-10 md:mb-12 section-fade-in">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-400 to-white">
-                Our Impact
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 sm:mb-6 text-white font-display">
+                {sectionTitle}
               </h2>
               <p className="text-base sm:text-lg md:text-xl text-white/80 max-w-3xl mx-auto lg:mx-0 px-1">
-                Numbers that speak for our commitment to excellence in robotics research and innovation
+                {sectionSubtitle}
               </p>
             </div>
 
             {loadingMetrics ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                {[...Array(6)].map((_, index) => (
-                  <div key={index} className="bg-white/5 rounded-2xl p-4 sm:p-6 lg:p-8 border border-white/10 animate-pulse">
-                    <div className="bg-white/10 p-4 rounded-xl w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4"></div>
-                    <div className="h-8 bg-white/10 rounded mb-2"></div>
-                    <div className="h-4 bg-white/10 rounded"></div>
-                  </div>
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <StatCardSkeleton key={index} delay={index * 80} />
                 ))}
               </div>
             ) : (
@@ -88,7 +91,7 @@ export default function ImpactSection() {
                     className="bg-white/5 rounded-2xl p-3.5 sm:p-6 lg:p-8 border border-white/10 text-center group hover:bg-white/10 hover:border-red-500/20 transition-all duration-300 section-fade-in"
                     style={{ animationDelay: `${index * 80}ms` }}
                   >
-                    <div className="bg-gradient-to-br from-white/10 to-red-500/10 p-2.5 sm:p-4 rounded-xl w-fit mx-auto mb-2.5 sm:mb-4 group-hover:shadow-lg transition-shadow duration-300 [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
+                    <div className="bg-white/10 p-2.5 sm:p-4 rounded-xl w-fit mx-auto mb-2.5 sm:mb-4 group-hover:shadow-lg transition-shadow duration-300 [&>svg]:w-6 [&>svg]:h-6 sm:[&>svg]:w-8 sm:[&>svg]:h-8">
                       {stat.icon}
                     </div>
                     <h3 className="text-xl sm:text-3xl lg:text-4xl font-bold text-red-400 mb-1.5 sm:mb-2">

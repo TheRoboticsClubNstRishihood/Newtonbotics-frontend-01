@@ -74,7 +74,11 @@ export default function CustomCursor() {
       icon.style.filter = on
         ? "drop-shadow(0 0 10px rgba(239,68,68,1)) drop-shadow(0 0 18px rgba(239,68,68,0.65))"
         : "drop-shadow(0 0 6px rgba(239,68,68,0.85))";
-      icon.style.color = on ? "#ffffff" : "#ef4444";
+      icon.style.color = on
+        ? document.documentElement.classList.contains("theme-light")
+          ? "#111827"
+          : "#ffffff"
+        : "#ef4444";
     };
 
     const onOver = (e) => {

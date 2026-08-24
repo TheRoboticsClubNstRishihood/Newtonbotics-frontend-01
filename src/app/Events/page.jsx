@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Brain, Box, Layout, Search, Filter, ArrowRight, Calendar, Users, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
+import { CardSkeletonGrid } from "@/components/PageSkeletons";
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
@@ -205,20 +206,7 @@ const EventsPage = () => {
           </div>
           
           {/* Loading skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 animate-pulse">
-                <div className="h-4 bg-white/10 rounded mb-3"></div>
-                <div className="h-3 bg-white/10 rounded mb-2"></div>
-                <div className="h-3 bg-white/10 rounded mb-4"></div>
-                <div className="flex gap-2 mb-4">
-                  <div className="h-6 w-20 bg-white/10 rounded"></div>
-                  <div className="h-6 w-16 bg-white/10 rounded"></div>
-                </div>
-                <div className="h-8 bg-white/10 rounded"></div>
-              </div>
-            ))}
-          </div>
+          <CardSkeletonGrid count={6} variant="event" />
         </div>
       </div>
     );

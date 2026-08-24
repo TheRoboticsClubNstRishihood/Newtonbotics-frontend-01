@@ -10,7 +10,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative z-10 bg-black/95 text-white">
+    <footer className="relative z-10 bg-black/95 text-white border-t border-white/10">
       <div className="absolute inset-0 bg-black/70 pointer-events-none" aria-hidden="true" />
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-12 flex flex-col md:flex-row md:items-start gap-8 md:gap-6 lg:gap-8">
         {/* Club Overview */}

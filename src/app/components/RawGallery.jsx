@@ -113,7 +113,17 @@ export default function RawGallery() {
       </div>
       <div className="relative mx-auto overflow-hidden pb-2">
         {loading ? (
-          <div className="text-center text-white py-10">Loading...</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 px-1 sm:px-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-lg sm:rounded-xl shadow-2xl shadow-black/50 p-0.5 sm:p-1"
+                style={{ rotate: `${activeRotations[i % activeRotations.length]}deg` }}
+              >
+                <div className="nb-skeleton w-full h-28 sm:h-36 md:h-40 lg:h-48 rounded-md sm:rounded-lg" style={{ animationDelay: `${i * 80}ms` }} />
+              </div>
+            ))}
+          </div>
         ) : error ? (
           <div className="text-center text-red-400 py-10">{error}</div>
         ) : (

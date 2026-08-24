@@ -2,6 +2,8 @@
  * NewtonBotics branded lazy loader.
  * Variants: "page" (full viewport), "section" (block), "inline" (compact).
  */
+import { CardSkeletonGrid } from "@/components/PageSkeletons";
+
 export default function LazyLoader({
   variant = "section",
   label = "Loading",
@@ -65,28 +67,22 @@ export default function LazyLoader({
 }
 
 /** Skeleton placeholders for card grids while lazy chunks load */
-export function LazySkeleton({ cards = 3, className = "" }) {
+export function LazySkeleton({
+  cards = 3,
+  variant = "media",
+  cols,
+  gap,
+  className = "",
+}) {
   return (
-    <div
-      className={`container mx-auto px-4 sm:px-6 py-12 ${className}`}
-      role="status"
-      aria-label="Loading content"
-    >
-      <div className="mb-8 mx-auto h-8 w-48 max-w-full rounded-lg bg-white/10 animate-pulse" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {Array.from({ length: cards }).map((_, i) => (
-          <div
-            key={i}
-            className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-4"
-            style={{ animationDelay: `${i * 80}ms` }}
-          >
-            <div className="h-10 w-10 rounded-xl bg-white/10 animate-pulse" />
-            <div className="h-5 w-3/4 rounded bg-white/10 animate-pulse" />
-            <div className="h-3 w-full rounded bg-white/10 animate-pulse" />
-            <div className="h-3 w-2/3 rounded bg-white/10 animate-pulse" />
-          </div>
-        ))}
-      </div>
+    <div className={`container mx-auto px-4 sm:px-6 py-12 ${className}`}>
+      <div className="mb-8 mx-auto h-8 w-48 max-w-full nb-skeleton rounded-lg" />
+      <CardSkeletonGrid
+        count={cards}
+        variant={variant}
+        {...(cols ? { cols } : {})}
+        {...(gap ? { gap } : {})}
+      />
     </div>
   );
 }

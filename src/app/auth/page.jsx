@@ -32,13 +32,13 @@ const departments = [
 ];
 
 const authInputClass =
-  "min-w-0 font-sans text-sm placeholder:text-xs placeholder:tracking-normal rounded-xl bg-white/10 border border-white/15 focus:outline-none focus:ring-2 focus:ring-red-500/40 text-white placeholder-white/50";
+  "min-w-0 font-sans text-sm placeholder:text-xs placeholder:tracking-normal rounded-xl nb-auth-input focus:outline-none focus:ring-2 focus:ring-red-500/40";
 
 function Input({ icon: Icon, className = "", ...props }) {
   return (
     <div className="relative min-w-0">
       {Icon && (
-        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 nb-auth-icon pointer-events-none" />
       )}
       <input
         {...props}
@@ -52,7 +52,7 @@ function Select({ icon: Icon, children, className = "", ...props }) {
   return (
     <div className="relative min-w-0">
       {Icon && (
-        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 nb-auth-icon pointer-events-none" />
       )}
       <select
         {...props}
@@ -65,7 +65,7 @@ function Select({ icon: Icon, children, className = "", ...props }) {
 }
 
 function FieldLabel({ children }) {
-  return <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/55">{children}</span>;
+  return <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide nb-auth-label">{children}</span>;
 }
 
 function PasswordInput({ icon: Icon = Lock, value, onChange, placeholder = "Password", invalid = false, ...props }) {
@@ -73,7 +73,7 @@ function PasswordInput({ icon: Icon = Lock, value, onChange, placeholder = "Pass
   return (
     <div className="relative min-w-0">
       {Icon && (
-        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 nb-auth-icon pointer-events-none" />
       )}
       <input
         type={show ? "text" : "password"}
@@ -89,7 +89,7 @@ function PasswordInput({ icon: Icon = Lock, value, onChange, placeholder = "Pass
       <button
         type="button"
         onClick={() => setShow((s) => !s)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 hover:text-white"
+        className="absolute right-3 top-1/2 -translate-y-1/2 nb-auth-icon hover:text-white"
         aria-label={show ? "Hide password" : "Show password"}
       >
         {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -372,7 +372,7 @@ export default function AuthPage() {
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="relative w-full max-w-lg lg:max-w-xl h-64 md:h-96 lg:h-[500px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl lg:order-1"
+            className="relative w-full max-w-lg mx-auto lg:max-w-none min-w-0 h-64 md:h-96 lg:h-[500px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl nb-auth-media-panel"
           >
             <video
               src="/authentication.mp4"
@@ -382,27 +382,33 @@ export default function AuthPage() {
               playsInline
               className="absolute inset-0 w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/40" />
+            <div className="absolute inset-0 nb-auth-media-overlay" />
           </motion.div>
 
           {/* Right: Form */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className={`relative w-full rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.03] p-6 md:p-8 lg:order-2 flex flex-col ${
-              tab === "signup" ? "max-w-2xl" : "max-w-md"
+            className={`relative w-full min-w-0 rounded-3xl border p-6 md:p-8 flex flex-col nb-auth-card ${
+              tab === "signup" ? "max-w-2xl lg:max-w-none" : "max-w-md lg:max-w-none"
             }`}
           >
             {/* Tabs */}
-            <div className="flex items-center gap-2 bg-white/5 nb-chamfer p-1 w-fit mx-auto mb-6 border border-white/10 flex-shrink-0">
+            <div className="flex items-center gap-2 nb-chamfer p-1 w-fit mx-auto mb-6 border flex-shrink-0 nb-auth-tabs">
               <button
-                className={`px-4 py-2 nb-chamfer text-sm font-medium transition ${tab === "signin" ? "bg-white/15" : "text-white/70 hover:text-white"}`}
+                type="button"
+                className={`px-4 py-2 nb-chamfer text-sm font-medium transition ${
+                  tab === "signin" ? "nb-auth-tab-active" : "nb-auth-tab-inactive"
+                }`}
                 onClick={() => setTab("signin")}
               >
                 Sign In
               </button>
               <button
-                className={`px-4 py-2 nb-chamfer text-sm font-medium transition ${tab === "signup" ? "bg-white/15" : "text-white/70 hover:text-white"}`}
+                type="button"
+                className={`px-4 py-2 nb-chamfer text-sm font-medium transition ${
+                  tab === "signup" ? "nb-auth-tab-active" : "nb-auth-tab-inactive"
+                }`}
                 onClick={() => setTab("signup")}
               >
                 Sign Up
@@ -433,7 +439,7 @@ export default function AuthPage() {
                     placeholder="Password"
                   />
                   <div className="flex justify-end">
-                    <Link href="/auth/forgot" className="text-xs text-white/70 hover:text-white underline underline-offset-2">
+                    <Link href="/auth/forgot" className="text-xs nb-auth-link hover:underline underline-offset-2">
                       Forgot password?
                     </Link>
                   </div>
@@ -446,8 +452,8 @@ export default function AuthPage() {
                   >
                     {isSubmitting ? "Signing In..." : "Continue"}
                   </button>
-                  <div className="text-center text-sm text-white/60">
-                    Don't have an account? <button type="button" onClick={()=>setTab("signup")} className="text-white hover:underline">Sign up</button>
+                  <div className="text-center text-sm nb-auth-muted">
+                    Don't have an account? <button type="button" onClick={()=>setTab("signup")} className="nb-auth-link hover:underline">Sign up</button>
                   </div>
                 </motion.form>
               ) : (
@@ -681,9 +687,9 @@ export default function AuthPage() {
                     </button>
                   </div>
 
-                  <div className="text-center text-sm text-white/60">
+                  <div className="text-center text-sm nb-auth-muted">
                     Already have an account?{" "}
-                    <button type="button" onClick={() => setTab("signin")} className="text-white hover:underline">
+                    <button type="button" onClick={() => setTab("signin")} className="nb-auth-link hover:underline">
                       Sign in
                     </button>
                   </div>
@@ -692,7 +698,7 @@ export default function AuthPage() {
             </AnimatePresence>
             </div>
 
-            <div className="mt-6 text-[11px] text-white/40 text-center flex-shrink-0 pt-4 border-t border-white/10">
+            <div className="mt-6 text-[11px] nb-auth-muted text-center flex-shrink-0 pt-4 border-t border-white/10">
               Secure authentication powered by NewtonBotics Servers
             </div>
           </motion.div>

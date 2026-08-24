@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Brain, Box, Layout, Search, Filter, ArrowRight, Users, Calendar, Award } from "lucide-react";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
+import { CardSkeletonGrid, FilterBarSkeleton } from "@/components/PageSkeletons";
 
 const ResearchAreasPage = () => {
   const [researchAreas, setResearchAreas] = useState([]);
@@ -83,10 +84,20 @@ const ResearchAreasPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-          <p className="text-white/60">Loading research areas...</p>
+      <div className="min-h-screen bg-black text-white">
+        <div className="bg-gradient-to-b from-gray-900 to-black border-b border-white/10">
+          <div className="container mx-auto px-4 py-12 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-red-400 to-white">
+              Research Areas
+            </h1>
+            <p className="text-xl text-white/80 max-w-3xl mx-auto">
+              Explore our comprehensive research areas in robotics, AI, and automation.
+            </p>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-8">
+          <FilterBarSkeleton fields={2} />
+          <CardSkeletonGrid count={6} variant="research" />
         </div>
       </div>
     );

@@ -13,7 +13,7 @@ import {
 import Image from "next/image";
 import CloudinaryUploader from "../../components/CloudinaryUploader";
 import Link from "next/link";
-import LoadingSpinner from "../../components/LoadingSpinner";
+import { CardSkeletonGrid } from "@/components/PageSkeletons";
 import inventoryService from "../../lib/inventory";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -409,7 +409,7 @@ const InventoryPage = () => {
         transition={{ duration: 1 }}
       >
         {isLoading && (
-          <div className="py-16"><LoadingSpinner text="Loading inventory..." /></div>
+          <CardSkeletonGrid count={6} variant="inventory" />
         )}
         {!isLoading && error && (
           <div className="py-10 text-center text-red-400">{error}</div>
