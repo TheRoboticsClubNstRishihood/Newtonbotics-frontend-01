@@ -4,8 +4,14 @@ import { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, Users, Shield, Cpu, Bot, User2, Mail, Lock, Phone, Building, Calendar, Eye, EyeOff, ChevronLeft } from "lucide-react";
+import { GraduationCap, Users, Shield, Cpu, Bot, User2, Mail, Lock, Phone, Building, Calendar, Eye, EyeOff, ChevronLeft, Check, X } from "lucide-react";
 import AuthPageShell from "./components/AuthPageShell";
+import {
+  OTHER_ACADEMIC_YEAR,
+  PASSING_YEARS,
+  passingYearOptionLabel,
+  passingYearToYearOfStudy,
+} from "@/lib/academicYear";
 
 const roles = [
   { id: "student", name: "Student", icon: GraduationCap, blurb: "Learning and building" },
@@ -62,7 +68,7 @@ function FieldLabel({ children }) {
   return <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-white/55">{children}</span>;
 }
 
-function PasswordInput({ icon: Icon = Lock, value, onChange, placeholder = "Password" }) {
+function PasswordInput({ icon: Icon = Lock, value, onChange, placeholder = "Password", invalid = false, ...props }) {
   const [show, setShow] = useState(false);
   return (
     <div className="relative min-w-0">
@@ -74,7 +80,11 @@ function PasswordInput({ icon: Icon = Lock, value, onChange, placeholder = "Pass
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full ${Icon ? "pl-10" : "pl-4"} pr-10 py-3 ${authInputClass}`}
+        aria-invalid={invalid}
+        className={`w-full ${Icon ? "pl-10" : "pl-4"} pr-10 py-3 ${authInputClass} ${
+          invalid ? "border-red-500/80 focus:ring-red-500/50" : ""
+        }`}
+        {...props}
       />
       <button
         type="button"
@@ -161,14 +171,25 @@ export default function AuthPage() {
     [formData.email]
   );
 
-  const isValidPassword = useMemo(() => {
+  const passwordRules = useMemo(() => {
     const password = formData.password;
-    return password.length >= 8 && 
-           /[A-Z]/.test(password) && 
-           /[a-z]/.test(password) && 
-           /[0-9]/.test(password) && 
-           /[!@#$%^&*()_\-.,?":{}|<>]/.test(password);
+    return [
+      { id: "length", label: "At least 8 characters", met: password.length >= 8 },
+      { id: "upper", label: "One uppercase letter", met: /[A-Z]/.test(password) },
+      { id: "lower", label: "One lowercase letter", met: /[a-z]/.test(password) },
+      { id: "number", label: "One number", met: /[0-9]/.test(password) },
+      { id: "special", label: "One special character (!@#$%^&*...)", met: /[!@#$%^&*()_\-.,?":{}|<>]/.test(password) },
+    ];
   }, [formData.password]);
+
+  const isValidPassword = useMemo(
+    () => passwordRules.every((rule) => rule.met),
+    [passwordRules]
+  );
+
+  const passwordsMatch = formData.password === formData.confirmPassword;
+  const showPasswordHints = formData.password.length > 0;
+  const showPasswordMismatch = formData.confirmPassword.length > 0 && !passwordsMatch;
 
   const isValidPhone = useMemo(() => {
     const phone = formData.phone.trim();
@@ -234,7 +255,7 @@ export default function AuthPage() {
     }
 
     if (formData.role === "student" && !formData.yearOfStudy) {
-      setError("Year of study is required for students");
+      setError("Academic year is required for students");
       return false;
     }
 
@@ -251,6 +272,11 @@ export default function AuthPage() {
     setError("");
 
     try {
+      const derivedYearOfStudy =
+        formData.role === "student" && formData.yearOfStudy !== OTHER_ACADEMIC_YEAR
+          ? passingYearToYearOfStudy(formData.yearOfStudy)
+          : null;
+
       const userData = {
         email: formData.email.trim(),
         password: formData.password,
@@ -260,7 +286,7 @@ export default function AuthPage() {
         ...(formData.role === "student" && {
           studentId: formData.studentId.trim(),
           department: formData.department,
-          yearOfStudy: parseInt(formData.yearOfStudy),
+          ...(derivedYearOfStudy ? { yearOfStudy: derivedYearOfStudy } : {}),
         }),
         ...(formData.phone && { phone: formData.phone.trim() }),
       };
@@ -486,6 +512,8 @@ export default function AuthPage() {
                               value={formData.password}
                               onChange={(e) => handleInputChange("password", e.target.value)}
                               placeholder="Min 8 chars"
+                              invalid={showPasswordHints && !isValidPassword}
+                              aria-describedby="signup-password-rules"
                             />
                           </label>
                           <label className="block min-w-0">
@@ -494,9 +522,33 @@ export default function AuthPage() {
                               value={formData.confirmPassword}
                               onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                               placeholder="Confirm"
+                              invalid={showPasswordMismatch}
+                              aria-describedby="signup-password-match"
                             />
                           </label>
                         </div>
+
+                        {showPasswordHints && (
+                          <ul id="signup-password-rules" className="space-y-1 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5">
+                            {passwordRules.map((rule) => (
+                              <li
+                                key={rule.id}
+                                className={`flex items-center gap-2 text-xs ${
+                                  rule.met ? "text-emerald-400" : "text-red-300"
+                                }`}
+                              >
+                                {rule.met ? <Check className="h-3.5 w-3.5 shrink-0" /> : <X className="h-3.5 w-3.5 shrink-0" />}
+                                {rule.label}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+
+                        {showPasswordMismatch && (
+                          <p id="signup-password-match" className="text-xs text-red-300">
+                            Passwords do not match
+                          </p>
+                        )}
 
                         <label className="block min-w-0">
                           <FieldLabel>Phone (optional)</FieldLabel>
@@ -573,18 +625,21 @@ export default function AuthPage() {
                                 </Select>
                               </label>
                               <label className="block min-w-0">
-                                <FieldLabel>Year of study</FieldLabel>
+                                <FieldLabel>Academic year</FieldLabel>
                                 <Select
                                   icon={Calendar}
                                   value={formData.yearOfStudy}
                                   onChange={(e) => handleInputChange("yearOfStudy", e.target.value)}
                                 >
-                                  <option value="">Select year</option>
-                                  {[1, 2, 3, 4, 5].map((year) => (
+                                  <option value="">Select passing year</option>
+                                  {PASSING_YEARS.map((year) => (
                                     <option key={year} value={year}>
-                                      Year {year}
+                                      {passingYearOptionLabel(year)}
                                     </option>
                                   ))}
+                                  <option value={OTHER_ACADEMIC_YEAR}>
+                                    Other (other branch / programme)
+                                  </option>
                                 </Select>
                               </label>
                             </div>
