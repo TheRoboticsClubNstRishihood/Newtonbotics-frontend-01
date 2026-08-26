@@ -297,8 +297,8 @@ const EventDetail = () => {
   return (
     <>
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <div className="bg-gradient-to-b from-gray-900 to-black border-b border-white/10">
+      {/* Header — scoped hero band (readable in light + dark theme) */}
+      <div className="nb-project-hero border-b border-white/10">
         <div className="container mx-auto px-4 py-6 relative">
           {/* Back button and Countdown in same row */}
           <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
@@ -307,7 +307,7 @@ const EventDetail = () => {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 text-white/60 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg"
+                className="nb-hero-back flex items-center gap-2 transition-colors p-2 rounded-lg"
               >
                 <ArrowLeft className="w-5 h-5" />
                 <span className="hidden sm:inline">Back to Events</span>
@@ -376,10 +376,10 @@ const EventDetail = () => {
             </div>
 
             {/* Event Title */}
-            <h1 className="text-4xl md:text-5xl font-bold">{event.title}</h1>
+            <h1 className="nb-project-hero-title text-4xl md:text-5xl font-bold font-display">{event.title}</h1>
             
             {/* Event Description */}
-            <p className="text-xl text-white/80 max-w-4xl">
+            <p className="nb-project-hero-muted text-xl max-w-4xl">
               {event.description}
             </p>
 

@@ -8,7 +8,7 @@ import Image from "next/image";
 import { useAuth } from "../../contexts/AuthContext";
 import { API_BASE_URL } from "@/lib/api";
 import { ADMIN_PANEL_URL } from "@/lib/site";
-import { NEWTONBOTICS_LOGO, NEWTONBOTICS_LOGO_WIDTH, NEWTONBOTICS_LOGO_HEIGHT } from "@/lib/branding";
+import SiteLogo from "./SiteLogo";
 import ThemeToggle from "./ThemeToggle";
 
 const Navbar = () => {
@@ -17,6 +17,7 @@ const Navbar = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [isProjectLeader, setIsProjectLeader] = useState(false);
   const profileRef = useRef(null);
+  const navRef = useRef(null);
   const pathname = usePathname();
   const router = useRouter();
   
@@ -40,6 +41,24 @@ const Navbar = () => {
     };
     document.addEventListener("mousedown", onClickAway);
     return () => document.removeEventListener("mousedown", onClickAway);
+  }, []);
+
+  // Sync real navbar height for overlays (gallery lightbox, etc.)
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const syncNavHeight = () => {
+      document.documentElement.style.setProperty(
+        "--nb-nav-height",
+        `${nav.offsetHeight}px`
+      );
+    };
+
+    syncNavHeight();
+    const observer = new ResizeObserver(syncNavHeight);
+    observer.observe(nav);
+    return () => observer.disconnect();
   }, []);
 
   // Close mobile menu on scroll
@@ -172,6 +191,7 @@ const Navbar = () => {
 
   return (
     <nav
+      ref={navRef}
       className={`sticky top-0 z-[100] w-full transition-all duration-300 ${
         isScrolled ? "bg-black backdrop-blur-lg" : "bg-black"
       }`}
@@ -179,22 +199,12 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between relative">
         {/* Logo */}
         <div className="flex items-center">
-          <Link
-            href="/DashBoard"
-            className="flex items-center gap-3 hover:opacity-90 transition"
-          >
-            <Image
-              src={NEWTONBOTICS_LOGO}
-              alt="NewtonBotics"
-              width={NEWTONBOTICS_LOGO_WIDTH}
-              height={NEWTONBOTICS_LOGO_HEIGHT}
-              className="w-44 sm:w-52 h-auto object-contain"
-              priority
-              fetchPriority="high"
-              unoptimized
-              sizes="(max-width: 640px) 11rem, 13rem"
-            />
-          </Link>
+            <Link
+              href="/DashBoard"
+              className="flex items-center gap-3 hover:opacity-90 transition"
+            >
+              <SiteLogo priority />
+            </Link>
         </div>
 
         {/* Desktop Menu */}

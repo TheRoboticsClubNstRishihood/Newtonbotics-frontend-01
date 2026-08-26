@@ -19,10 +19,12 @@ import {
   Eye,
   Tag,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from "lucide-react";
-import mediaService from "../../lib/media";
+import mediaService, { canViewLabOnlyMedia, resolveGalleryViewer } from "../../lib/media";
 import { CardSkeletonGrid, FilterBarSkeleton } from "@/components/PageSkeletons";
+import { useAuth } from "../../contexts/AuthContext";
 
 // Video Player Component that handles play/pause based on hover
 const VideoPlayer = ({ src, isPlaying, itemId }) => {
@@ -56,6 +58,9 @@ export default function GalleryClient() {
   const searchParams = useSearchParams();
   const initialCategoryFromUrl = searchParams?.get('categoryId') || 'all';
   const router = useRouter();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
+  const viewerCanViewLabOnly =
+    canViewLabOnlyMedia(user) || resolveGalleryViewer().canViewLabOnly;
   const [mediaItems, setMediaItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
@@ -82,9 +87,9 @@ export default function GalleryClient() {
     hasMore: false
   });
 
-  // Fetch media data
+  // Fetch categories/collections once on mount
   useEffect(() => {
-    fetchMediaData();
+    fetchCategoriesAndCollections();
   }, []);
 
   // If URL query changes later (client nav), update category filter
@@ -96,32 +101,35 @@ export default function GalleryClient() {
     }
   }, [searchParams, selectedCategory, isClearing]);
 
-  // Fetch filtered media when filters change
+  // Fetch media after auth is ready so lab-only items work for signed-in staff
   useEffect(() => {
+    if (authLoading) return;
     fetchFilteredMedia();
-  }, [searchQuery, selectedFileType, selectedCategory, selectedCollection, showFeaturedOnly]);
+  }, [
+    authLoading,
+    searchQuery,
+    selectedFileType,
+    selectedCategory,
+    selectedCollection,
+    showFeaturedOnly,
+    isAuthenticated,
+    user?.role,
+  ]);
 
-  const fetchMediaData = async () => {
+  const fetchCategoriesAndCollections = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch categories and collections in parallel
       const [categoriesData, collectionsData] = await Promise.all([
         mediaService.listCategories(),
         mediaService.listCollections()
       ]);
 
-      console.log('[Gallery] categories', categoriesData);
-      console.log('[Gallery] collections', collectionsData);
-
       setCategories(categoriesData);
       setCollections(collectionsData);
-
-      // Fetch initial media
-      await fetchFilteredMedia();
     } catch (err) {
-      console.error('Error fetching media data:', err);
+      console.error('Error fetching gallery metadata:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -174,6 +182,11 @@ export default function GalleryClient() {
       }
       if (showFeaturedOnly) {
         items = items.filter(it => it.isFeatured === true);
+      }
+      // Only hide lab-only media for guests / students once auth state is known
+      const canViewLabOnly = viewerCanViewLabOnly;
+      if (!authLoading && !canViewLabOnly) {
+        items = items.filter(it => !it.labMembersOnly);
       }
       setMediaItems(items);
       const serverPagination = result.pagination || {};
@@ -286,6 +299,19 @@ export default function GalleryClient() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [active, mediaItems]);
+
+  useEffect(() => {
+    if (!active) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [active]);
+
+  const activeIndex = active
+    ? mediaItems.findIndex((item) => item._id === active._id)
+    : -1;
 
   const getFileTypeIcon = (fileType) => {
     switch (fileType) {
@@ -585,7 +611,7 @@ export default function GalleryClient() {
                       
                       {/* Video overlay with play button - shown when not playing */}
                       {!isVideoPlaying(item._id) && (
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                        <div className="absolute inset-0 nb-media-play-overlay flex items-center justify-center">
                           <Play className="w-8 h-8 text-white" />
                         </div>
                       )}
@@ -607,7 +633,7 @@ export default function GalleryClient() {
                   
                   {/* File Type Badge */}
                   <div className="absolute top-2 left-2">
-                    <span className="p-1.5 rounded-full bg-black/50 text-white flex items-center" title={item.fileType}>
+                    <span className="p-1.5 rounded-full nb-media-badge flex items-center" title={item.fileType}>
                       {getFileTypeIcon(item.fileType)}
                     </span>
                   </div>
@@ -620,10 +646,10 @@ export default function GalleryClient() {
                   )}
                   
                   {/* Overlay Info */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-all duration-300 flex items-end">
+                  <div className="absolute inset-0 nb-hover-overlay flex items-end">
                     <div className="p-3 w-full transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                      <h3 className="text-sm font-semibold text-white truncate">{item.title}</h3>
-                      <div className="flex items-center gap-2 text-xs text-white/80 mt-1">
+                      <h3 className="nb-hover-overlay-text text-sm font-semibold truncate">{item.title}</h3>
+                      <div className="nb-hover-overlay-muted flex items-center gap-2 text-xs mt-1">
                         <Eye className="w-3 h-3" />
                         {item.viewCount || 0}
                         {item.duration && (
@@ -673,7 +699,7 @@ export default function GalleryClient() {
                           className="w-full h-full object-cover"
                         />
                         {/* Play button overlay */}
-                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                        <div className="absolute inset-0 nb-media-play-overlay flex items-center justify-center">
                           <Play className="w-6 h-6 text-white" />
                         </div>
                       </div>
@@ -731,120 +757,236 @@ export default function GalleryClient() {
       <AnimatePresence>
         {active && (
           <motion.div
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-start justify-center p-4 pt-16 md:pt-20 overflow-y-auto overscroll-contain"
+            className="nb-gallery-lightbox flex flex-col cursor-pointer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setActive(null)}
           >
-            <motion.div
-              className="relative w-full max-w-6xl"
-              initial={{ scale: 0.95, y: 10, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.95, y: 10, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
+            {/* Stage — below site navbar; no duplicate lightbox header */}
+            <div
+              className="relative flex flex-1 flex-col min-h-0 px-2 pt-3 pb-2 sm:px-8 sm:pt-5 sm:pb-6"
             >
-              <button
-                onClick={() => setActive(null)}
-                className="absolute -top-12 right-0 text-white/80 hover:text-white text-2xl z-10"
-                aria-label="Close"
+              {/* Mobile toolbar */}
+              <div
+                className="nb-lightbox-toolbar flex sm:hidden items-center justify-between gap-3 pt-1 pb-2 cursor-default"
+                onClick={(e) => e.stopPropagation()}
               >
-                ×
-              </button>
-              
-              <div className="relative w-full bg-black rounded-xl overflow-hidden border border-white/10">
-                {mediaItems.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => navigateLightbox("prev")}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white transition-colors"
-                      aria-label="Previous"
-                    >
-                      <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <button
-                      onClick={() => navigateLightbox("next")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 md:p-3 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white transition-colors"
-                      aria-label="Next"
-                    >
-                      <ChevronRight className="w-6 h-6" />
-                    </button>
-                  </>
-                )}
-                {active.fileType === "image" ? (
-                  <div className="relative w-full flex items-center justify-center">
-                    <img
-                      src={getPrimaryUrl(active)}
-                      alt={active.title}
-                      className="w-auto h-auto max-w-[95vw] md:max-w-[92vw] max-h-[calc(100vh-7rem)] md:max-h-[calc(100vh-9rem)] object-contain"
-                    />
-                  </div>
-                ) : active.fileType === "video" ? (
-                  <div className="relative w-full aspect-video">
-                    {/* Show thumbnail initially */}
-                    <img
-                      src={getThumbnailUrl(active)}
-                      alt={active.title}
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Video element */}
-                    <video
-                      src={getPrimaryUrl(active)}
-                      className="absolute inset-0 w-full h-full object-contain"
-                      controls
-                      autoPlay
-                    />
-                  </div>
+                {mediaItems.length > 1 && activeIndex >= 0 ? (
+                  <p
+                    className="nb-lightbox-counter text-xs font-medium uppercase tracking-wider px-2.5 py-1 rounded-full bg-black/50 border border-white/15"
+                    aria-live="polite"
+                  >
+                    {activeIndex + 1} / {mediaItems.length}
+                  </p>
                 ) : (
-                  <div className="w-full aspect-video bg-gray-800 flex items-center justify-center">
-                    <div className="text-center">
+                  <span className="text-xs font-medium uppercase tracking-wider text-white/50 px-1">
+                    Gallery
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setActive(null)}
+                  className="nb-lightbox-close flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors"
+                  aria-label="Close gallery view"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Desktop close + counter */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActive(null);
+                }}
+                className="nb-lightbox-close absolute top-5 right-3 md:top-6 md:right-6 z-40 hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors"
+                aria-label="Close gallery view"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              {mediaItems.length > 1 && activeIndex >= 0 && (
+                <p
+                  className="nb-lightbox-counter absolute top-5 left-3 md:top-6 md:left-6 z-40 hidden sm:block text-xs font-medium uppercase tracking-wider px-2.5 py-1 rounded-full bg-black/50 border border-white/15"
+                  aria-live="polite"
+                >
+                  {activeIndex + 1} / {mediaItems.length}
+                </p>
+              )}
+
+              <div className="relative flex flex-1 min-h-0 items-stretch justify-center">
+              {mediaItems.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateLightbox("prev");
+                    }}
+                    className="nb-lightbox-nav nb-lightbox-nav--edge absolute left-1 sm:left-4 top-1/2 -translate-y-1/2 z-30 flex"
+                    aria-label="Previous"
+                  >
+                    <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateLightbox("next");
+                    }}
+                    className="nb-lightbox-nav nb-lightbox-nav--edge absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 z-30 flex"
+                    aria-label="Next"
+                  >
+                    <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </button>
+                </>
+              )}
+
+              <motion.div
+                key={active._id}
+                className="nb-lightbox-frame relative w-full max-w-6xl flex flex-col flex-1 min-h-0 max-h-full cursor-default"
+                initial={{ scale: 0.96, opacity: 0, y: 8 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.96, opacity: 0, y: 8 }}
+                transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div
+                  className="nb-lightbox-media-stage relative flex flex-1 items-center justify-center bg-black/50 min-h-[min(36vh,240px)] sm:min-h-[min(50vh,320px)] max-h-[calc(100dvh-var(--nb-nav-height)-10rem)] sm:max-h-[calc(100vh-var(--nb-nav-height)-5rem)] cursor-pointer"
+                  onClick={() => setActive(null)}
+                >
+                  {active.fileType === "image" ? (
+                    <img
+                      src={getPrimaryUrl(active)}
+                      alt={active.title}
+                      className="max-h-full max-w-full w-auto h-auto object-contain cursor-default"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : active.fileType === "video" ? (
+                    <div
+                      className="relative w-full aspect-video max-h-full cursor-default"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <video
+                        src={getPrimaryUrl(active)}
+                        className="absolute inset-0 w-full h-full object-contain bg-black"
+                        controls
+                        autoPlay
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
                       {getFileTypeIcon(active.fileType)}
-                      <p className="text-white/60 mt-2">Preview not available</p>
+                      <p className="nb-lightbox-muted mt-3 text-sm">Preview not available</p>
+                    </div>
+                  )}
+
+                  {/* Desktop caption overlay on media */}
+                  <div
+                    className="nb-lightbox-caption absolute inset-x-0 bottom-0 pointer-events-none hidden sm:block"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-end justify-between gap-3 p-4 md:p-5 pointer-events-auto">
+                      <div className="min-w-0 pointer-events-auto">
+                        <h3 className="nb-lightbox-heading text-lg md:text-xl font-bold font-display leading-tight truncate">
+                          {active.title}
+                        </h3>
+                        <div className="nb-lightbox-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm mt-1.5">
+                          <span className="flex items-center gap-1">
+                            <Eye className="w-3.5 h-3.5" />
+                            {active.viewCount || 0} views
+                          </span>
+                          {active.duration && (
+                            <span>{mediaService.formatDuration(active.duration)}</span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {new Date(active.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0 pointer-events-auto">
+                        {active.isFeatured && (
+                          <Star
+                            className="w-5 h-5 text-yellow-400 fill-yellow-400"
+                            title="Featured"
+                          />
+                        )}
+                        <span
+                          className={`p-1.5 rounded-full ${getFileTypeColor(active.fileType)}`}
+                          title={active.fileType}
+                        >
+                          {getFileTypeIcon(active.fileType)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-              
-              {/* Media Info */}
-              <div className="mt-4 p-4 bg-white/5 backdrop-blur-lg rounded-xl border border-white/10">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="text-xl font-bold text-white">{active.title}</h3>
-                  <div className="flex items-center gap-2">
-                    {active.isFeatured && (
-                      <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 shrink-0" title="Featured" />
-                    )}
-                    <span className={`p-1.5 rounded-full ${getFileTypeColor(active.fileType)}`} title={active.fileType}>
-                      {getFileTypeIcon(active.fileType)}
-                    </span>
-                  </div>
                 </div>
-                
-                {active.description && (
-                  <p className="text-white/80 mb-3">{active.description}</p>
-                )}
-                
-                <div className="flex flex-wrap items-center gap-4 text-sm text-white/60">
-                  <span className="flex items-center gap-1">
-                    <Eye className="w-4 h-4" />
-                    {active.viewCount || 0} views
-                  </span>
-                  {active.duration && (
-                    <span>{mediaService.formatDuration(active.duration)}</span>
-                  )}
-                  <span>{new Date(active.createdAt).toLocaleDateString()}</span>
-                </div>
-                
-                {active.tags && active.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    {active.tags.map((tag, idx) => (
-                      <span key={idx} className="px-2 py-1 bg-white/10 rounded-full text-xs text-white/80">
-                        {tag}
+
+                {/* Mobile meta panel — below image, not overlapping */}
+                <div
+                  className="nb-lightbox-caption-panel sm:hidden shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="nb-lightbox-heading text-base font-bold font-display leading-snug">
+                        {active.title}
+                      </h3>
+                      <div className="nb-lightbox-muted flex flex-wrap items-center gap-x-3 gap-y-1 text-xs mt-1.5">
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-3.5 h-3.5" />
+                          {active.viewCount || 0} views
+                        </span>
+                        {active.duration && (
+                          <span>{mediaService.formatDuration(active.duration)}</span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {new Date(active.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {active.isFeatured && (
+                        <Star
+                          className="w-4 h-4 text-yellow-400 fill-yellow-400"
+                          title="Featured"
+                        />
+                      )}
+                      <span
+                        className={`p-1 rounded-full ${getFileTypeColor(active.fileType)}`}
+                        title={active.fileType}
+                      >
+                        {getFileTypeIcon(active.fileType)}
                       </span>
-                    ))}
+                    </div>
+                  </div>
+                </div>
+
+                {(active.description || (active.tags && active.tags.length > 0)) && (
+                  <div
+                    className="nb-lightbox-footer nb-lightbox-footer-scroll px-3 py-2.5 sm:px-5 sm:py-4 space-y-2 sm:space-y-3 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {active.description && (
+                      <p className="nb-lightbox-muted text-sm leading-relaxed">{active.description}</p>
+                    )}
+                    {active.tags && active.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {active.tags.map((tag, idx) => (
+                          <span key={idx} className="nb-lightbox-tag px-2.5 py-1 rounded-full text-xs">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
+              </motion.div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
