@@ -1,5 +1,25 @@
 // Media API client for Gallery
 import { API_BASE_URL } from './api';
+import authService from './auth';
+
+/** Roles that can view labMembersOnly gallery media (not public / student) */
+export const LAB_MEMBER_MEDIA_ROLES = ['team_member', 'mentor', 'researcher', 'admin'];
+
+export function canViewLabOnlyMedia(user) {
+  if (!user?.role) return false;
+  const role = String(user.role).toLowerCase();
+  return LAB_MEMBER_MEDIA_ROLES.includes(role);
+}
+
+export function resolveGalleryViewer() {
+  const user = authService.getCurrentUser();
+  const isAuthenticated = authService.isAuthenticated();
+  return {
+    user,
+    isAuthenticated,
+    canViewLabOnly: isAuthenticated && canViewLabOnlyMedia(user),
+  };
+}
 
 async function safeParseJson(response) {
   const contentType = response.headers.get('content-type') || '';
@@ -16,6 +36,16 @@ function toQuery(params = {}) {
   });
   const qs = search.toString();
   return qs ? `?${qs}` : '';
+}
+
+function getAuthHeaders() {
+  if (typeof window === 'undefined') return {};
+  try {
+    const token = authService.getAccessToken() || localStorage.getItem('nb_access_token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
 }
 
 // Mock media data for when API is not available
@@ -86,7 +116,10 @@ export const mediaService = {
       const query = toQuery({ fileType, categoryId, q, limit, skip, isFeatured });
       const url = `${API_BASE_URL}/media${query}`;
       console.log('[mediaService.listMedia] GET', url);
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(url, {
+        cache: 'no-store',
+        headers: getAuthHeaders(),
+      });
       
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -213,7 +246,10 @@ export const mediaService = {
   // GET /api/media/:id - Get specific media item (auto-increments view count)
   async getMedia(id) {
     try {
-      const res = await fetch(`${API_BASE_URL}/media/${id}`, { cache: 'no-store' });
+      const res = await fetch(`${API_BASE_URL}/media/${id}`, {
+        cache: 'no-store',
+        headers: getAuthHeaders(),
+      });
       
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}: ${res.statusText}`);
@@ -237,7 +273,8 @@ export const mediaService = {
     try {
       const res = await fetch(`${API_BASE_URL}/media/${id}/view`, { 
         method: 'POST',
-        cache: 'no-store' 
+        cache: 'no-store',
+        headers: getAuthHeaders(),
       });
       
       if (!res.ok) {

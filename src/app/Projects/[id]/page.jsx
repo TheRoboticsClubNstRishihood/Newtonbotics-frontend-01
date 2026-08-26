@@ -1003,8 +1003,8 @@ const ProjectDetail = () => {
                       );
                     })()}
                     {galleryItems[currentSlide]?.title && (
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                        <div className="text-white/90 text-sm font-medium truncate">
+                      <div className="absolute inset-x-0 bottom-0 nb-media-gradient-caption p-3">
+                        <div className="nb-media-gradient-text text-sm font-medium truncate">
                           {galleryItems[currentSlide]?.title}
                         </div>
                       </div>

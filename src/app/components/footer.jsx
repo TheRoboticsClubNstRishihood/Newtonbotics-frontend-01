@@ -1,9 +1,8 @@
 "use client";
 import { Instagram, Linkedin, Mail, MapPin } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import clubData from "../AllDatas/data.json";
-import { NEWTONBOTICS_LOGO, NEWTONBOTICS_LOGO_WIDTH, NEWTONBOTICS_LOGO_HEIGHT } from "@/lib/branding";
+import SiteLogo from "./SiteLogo";
 import FooterRobot from "./FooterRobot";
 
 const Footer = () => {
@@ -16,13 +15,7 @@ const Footer = () => {
         {/* Club Overview */}
         <div className="md:flex-1 md:min-w-0">
           <div className="flex items-center mb-2">
-            <Image
-              src={NEWTONBOTICS_LOGO}
-              alt="NewtonBotics"
-              width={NEWTONBOTICS_LOGO_WIDTH}
-              height={NEWTONBOTICS_LOGO_HEIGHT}
-              className="w-44 h-auto object-contain"
-            />
+            <SiteLogo className="w-44 h-auto object-contain" />
           </div>
           <p className="text-gray-400 text-xs mb-2 font-medium">
             Rishihood University
